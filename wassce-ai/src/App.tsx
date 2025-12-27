@@ -18,6 +18,12 @@ import SignUpPage from "./pages/auth/SignUpPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import TermsPage from "./pages/legal/TermsPage";
 import PrivacyPage from "./pages/legal/PrivacyPage";
+import PricingPage from "./pages/marketing/PricingPage";
+import AboutPage from "./pages/marketing/AboutPage";
+import BlogPage from "./pages/marketing/BlogPage";
+import HelpPage from "./pages/marketing/HelpPage";
+import FaqPage from "./pages/marketing/FaqPage";
+import FeaturesRedirectPage from "./pages/marketing/FeaturesRedirectPage";
 
 const App = () => {
   return (
@@ -27,6 +33,12 @@ const App = () => {
           <Router>
             <Routes>
               <Route path="/" element={<LandingPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/help" element={<HelpPage />} />
+              <Route path="/faq" element={<FaqPage />} />
+              <Route path="/features" element={<FeaturesRedirectPage />} />
               <Route path="/auth">
                 <Route index element={<Navigate to="signin" replace />} />
                 <Route path="signin" element={<SignInPage />} />
@@ -38,6 +50,8 @@ const App = () => {
                 <Route path="terms" element={<TermsPage />} />
                 <Route path="privacy" element={<PrivacyPage />} />
               </Route>
+              <Route path="/terms" element={<Navigate to="/legal/terms" replace />} />
+              <Route path="/privacy" element={<Navigate to="/legal/privacy" replace />} />
               <Route
                 path="/dashboard"
                 element={

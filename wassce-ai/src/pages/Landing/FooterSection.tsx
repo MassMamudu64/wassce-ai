@@ -104,6 +104,18 @@ const FooterSection = () => {
               LinkedIn
             </a>
           </div>
+          {/* Build with love by Mass */}
+          <div className="mt-4 md:mt-0 text-sm">
+            Built with ❤️ by{" "}
+            <a
+              href="https://jula-tech.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-white transition underline"
+            >
+              Mass
+            </a>
+          </div>
         </div>
       </div>
     </footer>
