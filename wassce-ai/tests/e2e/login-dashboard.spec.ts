@@ -25,7 +25,10 @@ test("landing login flow and topic spotlight interactions", async ({ page }) => 
   await page.locator('input[type="date"]').fill(examDate);
   await page.getByRole("button", { name: "Save profile" }).click();
 
-  await expect(page.getByText("Topic spotlight")).toBeVisible();
+  await page.getByRole("button", { name: "Show insights" }).click();
+  const spotlightHeading = page.getByRole("heading", { name: "Interactive mastery view" });
+  await expect(spotlightHeading).toBeVisible();
+  const spotlightSection = spotlightHeading.locator("xpath=ancestor::section[1]");
 
   const slider = page.getByLabel("Adjust focus boost");
   await slider.focus();
@@ -33,13 +36,13 @@ test("landing login flow and topic spotlight interactions", async ({ page }) => 
     await slider.press("ArrowRight");
   }
 
-  const predictedValue = page.locator('p:has-text("Predicted mastery") strong');
+  const predictedValue = spotlightSection.locator('p:has-text("Predicted mastery") strong');
   await expect(predictedValue).toHaveText("94%");
 
-  const shiftButton = page.getByRole("button", { name: /Shift focus to/ });
+  const shiftButton = spotlightSection.getByRole("button", { name: /Shift focus to/ });
   await shiftButton.click();
 
-  const masteryBadge = page.locator('section:has-text("Topic spotlight") p.text-4xl');
+  const masteryBadge = spotlightSection.locator("p.text-4xl");
   await expect(masteryBadge).toHaveText("68%");
   await expect(page.getByRole("button", { name: /Shift focus to Chemistry/ })).toBeVisible();
 });

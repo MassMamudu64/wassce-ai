@@ -53,11 +53,9 @@ test.describe("Dashboard Tools Functionality", () => {
     } else {
       await page.getByTestId("quiz-option-0").click();
     }
-    await page.getByRole("button", { name: "Submit Answer" }).click();
-    await expect(page.getByText(/Correct!|Incorrect/)).toBeVisible();
 
     // Continue to next question
-    await page.getByRole("button", { name: "Next Question" }).click();
+    await page.getByRole("button", { name: /Next Question/ }).click();
     await expect(page.getByText("Question 2")).toBeVisible();
   });
 

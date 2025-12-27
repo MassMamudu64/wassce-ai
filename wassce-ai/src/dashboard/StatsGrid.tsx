@@ -2,11 +2,13 @@ import { type LearningStat } from "../utils/api";
 
 interface StatsGridProps {
   stats: LearningStat[];
+  layout?: "inline" | "stacked";
 }
 
-const StatsGrid = ({ stats }: StatsGridProps) => {
+const StatsGrid = ({ stats, layout = "inline" }: StatsGridProps) => {
+  const gridClass = layout === "stacked" ? "grid-cols-1" : "md:grid-cols-3";
   return (
-    <section className="grid gap-4 md:grid-cols-3" aria-label="learning metrics">
+    <section className={`grid gap-4 ${gridClass}`} aria-label="learning metrics">
       {stats.map((stat) => (
         <div
           key={stat.label}

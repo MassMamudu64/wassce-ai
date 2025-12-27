@@ -3,6 +3,8 @@ import { type SuggestedTopic } from "../utils/api";
 
 interface SuggestedTopicsProps {
   suggestions: SuggestedTopic[];
+  maxItems?: number;
+  variant?: "full" | "compact";
 }
 
 interface StatusChipProps {
@@ -16,15 +18,19 @@ const priorityMap: Record<SuggestedTopic["priority"], StatusChipProps["variant"]
   Low: "muted",
 };
 
-const SuggestedTopics = ({ suggestions }: SuggestedTopicsProps) => {
+const SuggestedTopics = ({ suggestions, maxItems, variant = "full" }: SuggestedTopicsProps) => {
+  const visible = typeof maxItems === "number" ? suggestions.slice(0, maxItems) : suggestions;
+  const wrapperClass =
+    variant === "compact" ? "rounded-2xl border border-slate-800 bg-slate-950/40 p-4" : "rounded-3xl border border-slate-800 bg-slate-900/60 p-6";
+  const titleClass = variant === "compact" ? "text-base font-semibold text-white" : "text-lg font-semibold text-white";
   return (
-    <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6">
+    <section className={wrapperClass}>
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white">Suggested topics</h3>
+        <h3 className={titleClass}>Suggested topics</h3>
         <span className="text-xs uppercase tracking-[0.4em] text-slate-500">Priority</span>
       </div>
       <div className="space-y-4">
-        {suggestions.map((topic) => (
+        {visible.map((topic) => (
           <div key={topic.title} className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold text-white">{topic.title}</p>

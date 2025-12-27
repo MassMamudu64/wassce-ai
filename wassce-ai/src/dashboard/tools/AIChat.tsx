@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { getOpenAiApiKey } from "../../utils/settings";
 
 interface Message {
@@ -10,6 +10,7 @@ interface Message {
 }
 
 const AIChat = () => {
+  const location = useLocation();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -23,6 +24,15 @@ const AIChat = () => {
 
   const apiKey = getOpenAiApiKey();
   const hasApiKey = Boolean(apiKey);
+
+  useEffect(() => {
+    const state = location.state as { prefill?: string } | null;
+    const prefill = state?.prefill?.trim();
+    if (!prefill) return;
+    setInput((current) => (current.trim() ? current : prefill));
+    // Clear state so refresh/back doesn't keep re-prefilling.
+    window.history.replaceState({}, "");
+  }, [location.state]);
 
   const handleSend = async () => {
     if (!input.trim() || !apiKey) return;
