@@ -32,6 +32,7 @@ interface QuizRunnerProps {
   onReset: () => void;
   onToggleShowAnswers: (next: boolean) => void;
   hasApiKey: boolean;
+  premium: boolean;
   studentId: string;
 }
 
@@ -60,6 +61,7 @@ export default function QuizRunner({
   onReset,
   onToggleShowAnswers,
   hasApiKey,
+  premium,
   studentId,
 }: QuizRunnerProps) {
   const activeQuestion = questions[currentIndex];
@@ -142,6 +144,7 @@ export default function QuizRunner({
                 showCorrectness={isFinished && showReviewAnswers}
                 onSelect={onSelectAnswer}
                 hasApiKey={hasApiKey}
+                premium={premium}
               />
 
               {isFinished ? (
@@ -185,4 +188,3 @@ export default function QuizRunner({
     </div>
   );
 }
-

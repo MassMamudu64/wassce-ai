@@ -8,6 +8,7 @@ interface QuizSetupCardProps {
   onSelectedSubject: (subject: Subject) => void;
   onLaunch: () => void;
   hasApiKey: boolean;
+  premium: boolean;
   generationError: string | null;
   disabled?: boolean;
 }
@@ -17,6 +18,7 @@ export default function QuizSetupCard({
   onSelectedSubject,
   onLaunch,
   hasApiKey,
+  premium,
   generationError,
   disabled,
 }: QuizSetupCardProps) {
@@ -51,6 +53,11 @@ export default function QuizSetupCard({
           Add OpenAI key to enable AI quizzes →
         </Link>
       )}
+      {hasApiKey && !premium && (
+        <Link to="/dashboard/billing" className="inline-flex text-xs font-semibold uppercase tracking-[0.3em] text-amber-200 hover:text-white">
+          Unlock Premium to generate AI quizzes →
+        </Link>
+      )}
 
       {generationError && (
         <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 p-3 text-sm text-rose-100">{generationError}</div>
@@ -58,4 +65,3 @@ export default function QuizSetupCard({
     </div>
   );
 }
-

@@ -16,6 +16,7 @@ interface QuestionCardProps {
   showCorrectness: boolean;
   onSelect: (optionIndex: number) => void;
   hasApiKey: boolean;
+  premium: boolean;
 }
 
 export default function QuestionCard({
@@ -29,6 +30,7 @@ export default function QuestionCard({
   showCorrectness,
   onSelect,
   hasApiKey,
+  premium,
 }: QuestionCardProps) {
   const [hint, setHint] = useState<string | null>(null);
   const [hintLoading, setHintLoading] = useState(false);
@@ -37,6 +39,10 @@ export default function QuestionCard({
   const letters = useMemo(() => ["A", "B", "C", "D"], []);
 
   const handleHint = async () => {
+    if (!premium) {
+      setHintError("Unlock Premium to generate AI hints.");
+      return;
+    }
     if (!hasApiKey) {
       setHintError("Add your OpenAI API key in Settings to generate AI hints.");
       return;
@@ -145,11 +151,19 @@ export default function QuestionCard({
             <button
               type="button"
               onClick={handleHint}
-              disabled={hintLoading || !hasApiKey}
+              disabled={hintLoading || !hasApiKey || !premium}
               className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {hintLoading ? "Generating hint..." : "Generate AI hint"}
             </button>
+            {!premium ? (
+              <Link
+                to="/dashboard/billing"
+                className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800 hover:bg-amber-100"
+              >
+                Unlock Premium
+              </Link>
+            ) : null}
             <Link
               to="/dashboard/tools/aichat"
               state={{

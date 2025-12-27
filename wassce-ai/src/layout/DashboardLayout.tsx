@@ -4,6 +4,7 @@ import {
   BarChart3,
   BookOpen,
   CalendarDays,
+  CreditCard,
   FileText,
   LayoutDashboard,
   Menu,
@@ -29,6 +30,7 @@ const navItems: NavItem[] = [
   { label: "Tools", to: "/dashboard/tools", icon: Wrench },
   { label: "Topics", to: "/dashboard/topics", icon: BookOpen },
   { label: "Progress", to: "/dashboard/progress", icon: BarChart3 },
+  { label: "Billing", to: "/dashboard/billing", icon: CreditCard },
   { label: "Settings", to: "/dashboard/settings", icon: Settings },
 ];
 

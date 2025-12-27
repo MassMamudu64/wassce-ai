@@ -12,6 +12,7 @@ import DashboardPastPapersPage from "./pages/dashboard/DashboardPastPapersPage";
 import DashboardTopicsPage from "./pages/dashboard/DashboardTopicsPage";
 import DashboardProgressPage from "./pages/dashboard/DashboardProgressPage";
 import DashboardSettingsPage from "./pages/dashboard/DashboardSettingsPage";
+import DashboardBillingPage from "./pages/dashboard/DashboardBillingPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import SignInPage from "./pages/auth/SignInPage";
 import SignUpPage from "./pages/auth/SignUpPage";
@@ -68,6 +69,7 @@ const App = () => {
                 <Route path="tools/:toolId" element={<DashboardToolsPage />} />
                 <Route path="topics" element={<DashboardTopicsPage />} />
                 <Route path="progress" element={<DashboardProgressPage />} />
+                <Route path="billing" element={<DashboardBillingPage />} />
                 <Route path="settings" element={<DashboardSettingsPage />} />
               </Route>
               <Route path="*" element={<NotFoundPage />} />

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLearningStore } from "../../stores/learningStore";
+import { useBillingStore } from "../../stores/billingStore";
 import type { Subject } from "../../types/domain";
 import { getOpenAiApiKey } from "../../utils/settings";
 import QuizLoadingCard from "./quizzes/QuizLoadingCard";
@@ -14,6 +15,7 @@ import { useQuizAttempt } from "./quizzes/useQuizAttempt";
 export default function Quizzes() {
   const { user } = useAuth();
   const { updateStudyStat, addStudySession } = useLearningStore();
+  const billing = useBillingStore();
 
   const hasApiKey = Boolean(getOpenAiApiKey());
   const [selectedSubject, setSelectedSubject] = useState<Subject>("integrated_science");
@@ -24,6 +26,8 @@ export default function Quizzes() {
 
   const studentId = useMemo(() => hashToStudentId(user?.email ?? "guest@wassce.ai"), [user?.email]);
   const subjectLabel = useMemo(() => formatSubjectLabel(selectedSubject), [selectedSubject]);
+  const premium = useMemo(() => billing.isPremium(user?.email), [billing, user?.email]);
+  const canUseAi = hasApiKey && premium;
 
   useEffect(() => {
     if (quiz.phase !== "finished") return;
@@ -60,9 +64,10 @@ export default function Quizzes() {
         }}
         onLaunch={() => {
           setSavedResult(false);
-          void quiz.launch(selectedSubject, hasApiKey);
+          void quiz.launch(selectedSubject, canUseAi);
         }}
         hasApiKey={hasApiKey}
+        premium={premium}
         generationError={quiz.generationError}
         disabled={false}
       />
@@ -74,9 +79,9 @@ export default function Quizzes() {
   }
 
   return (
-    <QuizRunner
-      subject={selectedSubject}
-      questions={quiz.questions}
+      <QuizRunner
+        subject={selectedSubject}
+        questions={quiz.questions}
       currentIndex={quiz.currentIndex}
       answers={quiz.answers}
       flaggedIds={quiz.flaggedIds}
@@ -87,12 +92,13 @@ export default function Quizzes() {
       showReviewAnswers={quiz.showReviewAnswers}
       score={quiz.score}
       accuracy={quiz.accuracy}
-      savedResult={savedResult}
-      studentId={studentId}
-      hasApiKey={hasApiKey}
-      onCollapsePalette={() => quiz.setPaletteCollapsed(true)}
-      onExpandPalette={() => quiz.setPaletteCollapsed(false)}
-      onJump={(index) => quiz.jumpTo(index)}
+        savedResult={savedResult}
+        studentId={studentId}
+        hasApiKey={hasApiKey}
+        premium={premium}
+        onCollapsePalette={() => quiz.setPaletteCollapsed(true)}
+        onExpandPalette={() => quiz.setPaletteCollapsed(false)}
+        onJump={(index) => quiz.jumpTo(index)}
       onPrev={quiz.prev}
       onNext={quiz.next}
       onToggleFlag={quiz.toggleFlag}

@@ -23,7 +23,7 @@ type UseQuizAttempt = {
   accuracy: number;
   setPaletteCollapsed: (next: boolean) => void;
   setShowReviewAnswers: (next: boolean) => void;
-  launch: (subject: Subject, hasApiKey: boolean) => Promise<void>;
+  launch: (subject: Subject, canUseAi: boolean) => Promise<void>;
   backToSetup: () => void;
   finish: () => void;
   reset: () => void;
@@ -87,17 +87,14 @@ export const useQuizAttempt = (): UseQuizAttempt => {
   };
 
   const launch = useCallback(
-    async (subject: Subject, hasApiKey: boolean) => {
+    async (subject: Subject, canUseAi: boolean) => {
       if (phase === "loading") return;
       setGenerationError(null);
 
       const sample = getSampleQuestions(subject);
-      if (!hasApiKey) {
-        if (sample.length === 0) {
-          setGenerationError("Add your OpenAI API key in Settings to generate quizzes for this subject.");
-          return;
-        }
-        begin(sample, "sample");
+      if (!canUseAi) {
+        if (sample.length > 0) return begin(sample, "sample");
+        setGenerationError("No sample quiz available. Add an OpenAI key and unlock Premium to generate AI quizzes.");
         return;
       }
 
@@ -179,4 +176,3 @@ export const useQuizAttempt = (): UseQuizAttempt => {
     toggleFlag,
   };
 };
-
