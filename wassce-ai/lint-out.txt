@@ -1,0 +1,68 @@
+
+> wassce-ai@0.0.0 lint
+> eslint .
+
+
+c:\Users\Mass\Desktop\wassce-ai\wassce-ai\src\pages\CTASection.tsx
+   4:9  warning  The 'messages' array makes the dependencies of useEffect Hook (at line 39) change on every render. Move it inside the useEffect callback. Alternatively, wrap the initialization of 'messages' in its own useMemo() Hook                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          react-hooks/exhaustive-deps
+  36:7  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+c:\Users\Mass\Desktop\wassce-ai\wassce-ai\src\pages\CTASection.tsx:36:7
+  34 |       return () => clearTimeout(timer);
+  35 |     } else if (isDeleting && charIndex === 0) {
+> 36 |       setIsDeleting(false);
+     |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  37 |       setCurrentIndex((currentIndex + 1) % messages.length);
+  38 |     }
+  39 |   }, [charIndex, currentIndex, isDeleting, messages]);  react-hooks/set-state-in-effect
+
+c:\Users\Mass\Desktop\wassce-ai\wassce-ai\src\pages\FeaturesSection.tsx
+  32:10  error    'currentIndex' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+  64:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+c:\Users\Mass\Desktop\wassce-ai\wassce-ai\src\pages\FeaturesSection.tsx:64:7
+  62 |       return () => clearTimeout(timer);
+  63 |     } else if (isDeleting && charIndex === 0) {
+> 64 |       setIsDeleting(false);
+     |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  65 |       const nextFeature = (activeFeature + 1) % features.length;
+  66 |       setActiveFeature(nextFeature);
+  67 |       setCurrentIndex(nextFeature);  react-hooks/set-state-in-effect
+  75:6   warning  React Hook useEffect has an unnecessary dependency: 'features'. Either exclude it or remove the dependency array. Outer scope values like 'features' aren't valid dependencies because mutating them doesn't re-render the component                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   react-hooks/exhaustive-deps
+
+c:\Users\Mass\Desktop\wassce-ai\wassce-ai\src\pages\HeroSection.tsx
+   5:9  warning  The 'aiMessages' array makes the dependencies of useEffect Hook (at line 40) change on every render. To fix this, wrap the initialization of 'aiMessages' in its own useMemo() Hook                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        react-hooks/exhaustive-deps
+  37:7  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+c:\Users\Mass\Desktop\wassce-ai\wassce-ai\src\pages\HeroSection.tsx:37:7
+  35 |       return () => clearTimeout(timer);
+  36 |     } else if (isDeleting && charIndex === 0) {
+> 37 |       setIsDeleting(false);
+     |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  38 |       setMsgIndex((msgIndex + 1) % aiMessages.length);
+  39 |     }
+  40 |   }, [charIndex, msgIndex, isDeleting, aiMessages]);  react-hooks/set-state-in-effect
+
+c:\Users\Mass\Desktop\wassce-ai\wassce-ai\src\pages\dashboard\Dashboard.tsx
+  1:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 8 problems (5 errors, 3 warnings)
+
