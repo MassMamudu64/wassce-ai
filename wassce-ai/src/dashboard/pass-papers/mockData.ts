@@ -8,7 +8,7 @@ export const pastPapers: PastPaper[] = [
     paperType: 'objective',
     title: 'WASSCE Mathematics 2021 Objective Questions and Answers',
     hasAnswers: true,
-    pdfUrl: 'https://examry.com/wp-content/uploads/2021/05/WASSCE-Mathematics-2021-Objective.pdf',
+    pdfUrl: 'https://cheetahwaec.com/chapters/algebra/2.3-domain-and-range.html',
     source: 'examry'
   },
   {

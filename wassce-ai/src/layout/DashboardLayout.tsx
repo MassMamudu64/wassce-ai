@@ -1,4 +1,4 @@
-import { useEffect, useMemo, type ComponentType } from "react";
+import { useEffect, useMemo, useRef, type ComponentType } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   BarChart3,
@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useUI } from "../contexts/UIContext";
+import MobileSnackbar from "../components/UI/MobileSnackbar";
+import ScrollIndicator from "../components/UI/ScrollIndicator";
 
 type NavItem = {
   label: string;
@@ -46,6 +48,7 @@ export default function DashboardLayout() {
   const { sidebarCollapsed, sidebarOpen, setSidebarOpen, toggleSidebarCollapsed, toggleSidebar } = useUI();
   const location = useLocation();
   const navigate = useNavigate();
+  const mainRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setSidebarOpen(false);
@@ -162,11 +165,19 @@ export default function DashboardLayout() {
             </div>
           </header>
 
-          <main className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6">
-            <Outlet />
-          </main>
+          <div className="relative min-h-0 flex-1">
+            <main
+              ref={mainRef}
+              className="h-full overflow-y-auto overscroll-y-contain px-4 py-6 pb-24 sm:px-6 sm:pb-6"
+            >
+              <Outlet />
+            </main>
+            <ScrollIndicator targetRef={mainRef} />
+          </div>
         </div>
       </div>
+
+      <MobileSnackbar />
     </div>
   );
 }

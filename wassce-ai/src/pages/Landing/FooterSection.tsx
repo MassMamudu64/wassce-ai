@@ -78,11 +78,11 @@ const FooterSection = () => {
               </li>
               <li className="flex items-start">
                 <span className="mr-2">📍</span>
-                <span>West Africa</span>
+                <span>Monrovia, Liberia</span>
               </li>
               <li className="flex items-start">
                 <span className="mr-2">📱</span>
-                <span>+234 XXX XXX XXXX</span>
+                <span>+234 812 3456</span>
               </li>
             </ul>
           </div>
