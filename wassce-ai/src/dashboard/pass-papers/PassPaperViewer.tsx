@@ -18,19 +18,20 @@ export default function PassPaperViewer() {
       <div className="space-y-4">
         <button
           onClick={handleBackToList}
-          className="rounded-xl border border-slate-800 bg-slate-900/50 px-4 py-2 text-sm font-semibold text-slate-200 hover:border-slate-600"
+          className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 hover:border-slate-300"
         >
-          ← Back to papers
+          Back to papers
         </button>
-        <div className="rounded-lg bg-slate-800 p-4">
-          <h2 className="text-xl font-semibold text-white mb-2">{selectedPaper.title}</h2>
-          <p className="text-sm text-slate-400 mb-4">
-            {selectedPaper.subject} • {selectedPaper.year} • {selectedPaper.paperType.toUpperCase()} • Source: {selectedPaper.source}
-            {selectedPaper.hasAnswers && " • Includes Answers"}
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <h2 className="mb-2 text-xl font-semibold text-slate-900">{selectedPaper.title}</h2>
+          <p className="mb-4 text-sm text-slate-600">
+            {selectedPaper.subject} | {selectedPaper.year} | {selectedPaper.paperType.toUpperCase()} | Source:{" "}
+            {selectedPaper.source}
+            {selectedPaper.hasAnswers && " | Includes Answers"}
           </p>
           <iframe
             src={selectedPaper.pdfUrl}
-            className="h-[70vh] min-h-[520px] w-full rounded-xl border border-slate-700 bg-white"
+            className="h-[70vh] min-h-[520px] w-full rounded-xl border border-slate-200 bg-white"
             title={selectedPaper.title}
           />
           <div className="mt-4 flex gap-2">
@@ -38,7 +39,7 @@ export default function PassPaperViewer() {
               href={selectedPaper.pdfUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+              className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
             >
               Open in New Tab
             </a>

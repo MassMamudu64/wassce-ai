@@ -20,7 +20,7 @@ export default function QuizFooter({ disablePrev, disableNext, flagged, isFinish
           disabled={disablePrev}
           className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          ← Previous
+          Previous
         </button>
 
         <div className="flex items-center gap-2">
@@ -43,11 +43,10 @@ export default function QuizFooter({ disablePrev, disableNext, flagged, isFinish
             disabled={disableNext}
             className="rounded-xl border border-blue-600 bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Next Question →
+            Next question
           </button>
         </div>
       </div>
     </footer>
   );
 }
-

@@ -20,13 +20,14 @@ export default function Quizzes() {
   const hasApiKey = Boolean(getOpenAiApiKey());
   const [selectedSubject, setSelectedSubject] = useState<Subject>("integrated_science");
   const [savedResult, setSavedResult] = useState(false);
+  const userRef = user?.email ?? user?.id;
 
   const quiz = useQuizAttempt();
   const timeLeftMs = useQuizTimer(quiz.phase === "active", quiz.endsAtMs);
 
-  const studentId = useMemo(() => hashToStudentId(user?.email ?? "guest@wassce.ai"), [user?.email]);
+  const studentId = useMemo(() => hashToStudentId(userRef ?? "guest@wassce.ai"), [userRef]);
   const subjectLabel = useMemo(() => formatSubjectLabel(selectedSubject), [selectedSubject]);
-  const premium = useMemo(() => billing.isPremium(user?.email), [billing, user?.email]);
+  const premium = useMemo(() => billing.isPremium(userRef), [billing, userRef]);
   const canUseAi = hasApiKey && premium;
 
   useEffect(() => {

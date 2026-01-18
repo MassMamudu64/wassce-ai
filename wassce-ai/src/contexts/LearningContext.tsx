@@ -13,6 +13,7 @@ import {
   initialLearningSnapshot,
   type LearningSnapshot,
 } from "../utils/api";
+import { useAuth } from "./AuthContext";
 
 interface LearningContextValue extends LearningSnapshot {
   completionRate: number;
@@ -23,13 +24,14 @@ interface LearningContextValue extends LearningSnapshot {
 const LearningContext = createContext<LearningContextValue | undefined>(undefined);
 
 export const LearningProvider = ({ children }: { children: ReactNode }) => {
+  const { user } = useAuth();
   const [snapshot, setSnapshot] = useState<LearningSnapshot>(initialLearningSnapshot);
   const [activeTool, setActiveTool] = useState(initialLearningSnapshot.tools[0].id);
 
   useEffect(() => {
     let mounted = true;
 
-    fetchLearningSnapshot().then((data) => {
+    fetchLearningSnapshot(user?.id).then((data) => {
       if (!mounted) return;
       setSnapshot(data);
       setActiveTool((previous) => data.tools.find((tool) => tool.id === previous)?.id ?? data.tools[0].id);
@@ -38,7 +40,7 @@ export const LearningProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [user?.id]);
 
   const selectTool = useCallback((id: string) => setActiveTool(id), []);
 

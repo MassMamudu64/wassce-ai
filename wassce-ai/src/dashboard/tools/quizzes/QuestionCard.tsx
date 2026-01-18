@@ -120,7 +120,10 @@ export default function QuestionCard({
                   </span>
                   <span className="text-base text-slate-900">{option}</span>
                 </div>
-                <span className={`h-5 w-5 rounded-full border ${selected ? "border-blue-600 bg-blue-600" : "border-slate-300 bg-white"}`} aria-hidden="true" />
+                <span
+                  className={`h-5 w-5 rounded-full border ${selected ? "border-blue-600 bg-blue-600" : "border-slate-300 bg-white"}`}
+                  aria-hidden="true"
+                />
               </button>
             );
           })}
@@ -145,7 +148,11 @@ export default function QuestionCard({
           </div>
         </summary>
         <div className="mt-4 space-y-3">
-          {hint ? <p className="text-sm text-slate-800">{hint}</p> : <p className="text-sm text-slate-700">Tip: eliminate two options first, then check keywords in the stem.</p>}
+          {hint ? (
+            <p className="text-sm text-slate-800">{hint}</p>
+          ) : (
+            <p className="text-sm text-slate-700">Tip: eliminate two options first, then check keywords in the stem.</p>
+          )}
           {hintError ? <p className="text-sm text-rose-700">{hintError}</p> : null}
           <div className="flex flex-wrap items-center gap-2">
             <button
@@ -167,7 +174,7 @@ export default function QuestionCard({
             <Link
               to="/dashboard/tools/aichat"
               state={{
-                prefill: `I’m answering a ${formatSubjectLabel(subject)} multiple-choice question. Give a subtle hint (no final answer).\n\nQuestion: ${question.question}\nOptions: ${question.options.join(", ")}`,
+                prefill: `I'm answering a ${formatSubjectLabel(subject)} multiple-choice question. Give a subtle hint (no final answer).\n\nQuestion: ${question.question}\nOptions: ${question.options.join(", ")}`,
               }}
               className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
             >

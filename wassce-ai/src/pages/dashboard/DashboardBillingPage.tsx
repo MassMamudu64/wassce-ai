@@ -11,7 +11,8 @@ type Status = "PENDING" | "SUCCESS" | "FAILED";
 export default function DashboardBillingPage() {
   const { user } = useAuth();
   const billing = useBillingStore();
-  const premium = useMemo(() => billing.isPremium(user?.email), [billing, user?.email]);
+  const userRef = user?.email ?? user?.id;
+  const premium = useMemo(() => billing.isPremium(userRef), [billing, userRef]);
 
   const [provider, setProvider] = useState<Provider>("mtn");
   const [phone, setPhone] = useState("");
@@ -22,13 +23,13 @@ export default function DashboardBillingPage() {
 
   usePaymentPolling(billing.lastPaymentId, (next) => {
     setStatus(next);
-    if (next === "SUCCESS" && user?.email) billing.setPremium(user.email, true);
+    if (next === "SUCCESS" && userRef) billing.setPremium(userRef, true);
   });
 
   const payNow = async () => {
     setError(null);
     setStatus(null);
-    if (!user?.email) return setError("Sign in to complete payment.");
+    if (!userRef) return setError("Sign in to complete payment.");
     if (phone.trim().length < 8) return setError("Enter a valid phone number.");
     if (amount <= 0) return setError("Enter a valid amount.");
     setBusy(true);
@@ -36,7 +37,7 @@ export default function DashboardBillingPage() {
       const res = await fetch("/api/payments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider, phone: phone.trim(), amount, currency: "LRD", userRef: user.email }),
+        body: JSON.stringify({ provider, phone: phone.trim(), amount, currency: "LRD", userRef }),
       });
       const data = (await res.json()) as { id?: string; error?: string; status?: Status };
       if (!res.ok || !data.id) throw new Error(data.error ?? "Payment initiation failed");
@@ -51,10 +52,10 @@ export default function DashboardBillingPage() {
 
   return (
     <div className="space-y-6">
-      <header className="rounded-3xl border border-slate-800 bg-slate-900/50 p-6">
+      <header className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
         <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Billing</p>
-        <h1 className="text-2xl font-semibold text-white">Unlock Premium</h1>
-        <p className="mt-2 text-sm text-slate-400">Pay with MTN MoMo or Lonestar Cell Money. Status updates automatically.</p>
+        <h1 className="text-2xl font-semibold text-slate-900">Unlock Premium</h1>
+        <p className="mt-2 text-sm text-slate-600">Pay with MTN MoMo or Lonestar Cell Money. Status updates automatically.</p>
       </header>
 
       <BillingForm
@@ -72,4 +73,3 @@ export default function DashboardBillingPage() {
     </div>
   );
 }
-

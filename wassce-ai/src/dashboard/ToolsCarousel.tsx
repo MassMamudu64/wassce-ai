@@ -19,10 +19,10 @@ interface ToolsCarouselProps {
 }
 
 const toneClass: Record<NonNullable<CarouselCard["tone"]>, string> = {
-  indigo: "from-indigo-500/20 to-indigo-500/5 border-indigo-500/25",
-  emerald: "from-emerald-500/20 to-emerald-500/5 border-emerald-500/25",
-  amber: "from-amber-500/20 to-amber-500/5 border-amber-500/25",
-  slate: "from-slate-500/15 to-slate-500/5 border-slate-700/40",
+  indigo: "from-indigo-50 via-white to-indigo-100/60 border-indigo-200",
+  emerald: "from-emerald-50 via-white to-emerald-100/60 border-emerald-200",
+  amber: "from-amber-50 via-white to-amber-100/60 border-amber-200",
+  slate: "from-slate-50 via-white to-slate-100/70 border-slate-200",
 };
 
 export default function ToolsCarousel({ title, subtitle, viewAllTo, cards }: ToolsCarouselProps) {
@@ -67,12 +67,12 @@ export default function ToolsCarousel({ title, subtitle, viewAllTo, cards }: Too
   }, [cards]);
 
   return (
-    <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6">
+    <section className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Tools</p>
-          <h2 className="text-2xl font-semibold text-white">{title}</h2>
-          {subtitle ? <p className="mt-1 text-sm text-slate-400">{subtitle}</p> : null}
+          <h2 className="text-2xl font-semibold text-slate-900">{title}</h2>
+          {subtitle ? <p className="mt-1 text-sm text-slate-600">{subtitle}</p> : null}
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -80,7 +80,7 @@ export default function ToolsCarousel({ title, subtitle, viewAllTo, cards }: Too
             onClick={() => scrollByPage("left")}
             disabled={!canScrollLeft}
             aria-label="Scroll tools left"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-800 bg-slate-950/40 text-slate-200 transition hover:bg-slate-800/60 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ChevronLeft size={18} />
           </button>
@@ -89,13 +89,13 @@ export default function ToolsCarousel({ title, subtitle, viewAllTo, cards }: Too
             onClick={() => scrollByPage("right")}
             disabled={!canScrollRight}
             aria-label="Scroll tools right"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-800 bg-slate-950/40 text-slate-200 transition hover:bg-slate-800/60 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ChevronRight size={18} />
           </button>
           <Link
             to={viewAllTo}
-            className="rounded-xl border border-slate-800 px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-200 hover:border-slate-600"
+            className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600 hover:border-slate-300"
           >
             View all
           </Link>
@@ -110,27 +110,26 @@ export default function ToolsCarousel({ title, subtitle, viewAllTo, cards }: Too
           <Link
             key={card.id}
             to={card.to}
-            className={`group relative w-[78%] shrink-0 snap-start rounded-3xl border bg-gradient-to-br p-5 transition hover:-translate-y-0.5 hover:border-slate-600 sm:w-[52%] lg:w-[44%] ${
+            className={`group relative w-[78%] shrink-0 snap-start rounded-3xl border bg-gradient-to-br p-5 transition hover:-translate-y-0.5 hover:border-slate-300 sm:w-[52%] lg:w-[44%] ${
               toneClass[card.tone]
             }`}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-slate-400">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-slate-500">
                   {card.eyebrow ?? "Ready now"}
                 </p>
-                <h3 className="mt-2 truncate text-lg font-semibold text-white">{card.title}</h3>
+                <h3 className="mt-2 truncate text-lg font-semibold text-slate-900">{card.title}</h3>
               </div>
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-200">
+              <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-600">
                 Open
               </span>
             </div>
-            <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-slate-300">{card.description}</p>
-            <div className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-transparent transition group-hover:ring-white/10" />
+            <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-slate-600">{card.description}</p>
+            <div className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-transparent transition group-hover:ring-slate-200" />
           </Link>
         ))}
       </div>
     </section>
   );
 }
-

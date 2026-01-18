@@ -44,7 +44,7 @@ export default function DashboardProgressPage() {
         label: "Readiness",
         value: avgAccuracy === null ? "--" : `${avgAccuracy}%`,
         trend: avgAccuracy === null ? "Complete a quiz to compute readiness" : `Predicted grade: ${predictedGrade}`,
-        helper: avgAccuracy === null ? "Tools → Quizzes" : undefined,
+        helper: avgAccuracy === null ? "Tools -> Quizzes" : undefined,
       },
       {
         label: "Last 7 days",
@@ -62,10 +62,10 @@ export default function DashboardProgressPage() {
 
   return (
     <div className="space-y-6">
-      <header className="rounded-3xl border border-slate-800 bg-slate-900/50 p-6">
+      <header className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
         <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Progress</p>
-        <h1 className="text-2xl font-semibold text-white">Feedback & analytics</h1>
-        <p className="mt-2 text-sm text-slate-400">This page uses real data from your quiz results and completed sessions.</p>
+        <h1 className="text-2xl font-semibold text-slate-900">Feedback and analytics</h1>
+        <p className="mt-2 text-sm text-slate-600">This page uses real data from your quiz results and completed sessions.</p>
       </header>
 
       <StatsGrid stats={progressStats} />
@@ -73,11 +73,10 @@ export default function DashboardProgressPage() {
       {studentProfile ? (
         <WeaknessDetection studyStats={studyStats} studySessions={studySessions} subjects={studentProfile.subjects} />
       ) : (
-        <section className="rounded-3xl border border-slate-800 bg-slate-900/50 p-6 text-sm text-slate-300">
+        <section className="rounded-3xl border border-slate-200 bg-white/80 p-6 text-sm text-slate-600">
           Set up your profile to unlock subject-based weakness detection.
         </section>
       )}
     </div>
   );
 }
-

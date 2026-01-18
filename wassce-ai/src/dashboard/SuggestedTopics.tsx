@@ -21,8 +21,10 @@ const priorityMap: Record<SuggestedTopic["priority"], StatusChipProps["variant"]
 const SuggestedTopics = ({ suggestions, maxItems, variant = "full" }: SuggestedTopicsProps) => {
   const visible = typeof maxItems === "number" ? suggestions.slice(0, maxItems) : suggestions;
   const wrapperClass =
-    variant === "compact" ? "rounded-2xl border border-slate-800 bg-slate-950/40 p-4" : "rounded-3xl border border-slate-800 bg-slate-900/60 p-6";
-  const titleClass = variant === "compact" ? "text-base font-semibold text-white" : "text-lg font-semibold text-white";
+    variant === "compact"
+      ? "rounded-2xl border border-slate-200 bg-white/80 p-4"
+      : "rounded-3xl border border-slate-200 bg-white/80 p-6";
+  const titleClass = variant === "compact" ? "text-base font-semibold text-slate-900" : "text-lg font-semibold text-slate-900";
   return (
     <section className={wrapperClass}>
       <div className="mb-4 flex items-center justify-between">
@@ -31,12 +33,12 @@ const SuggestedTopics = ({ suggestions, maxItems, variant = "full" }: SuggestedT
       </div>
       <div className="space-y-4">
         {visible.map((topic) => (
-          <div key={topic.title} className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
+          <div key={topic.title} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold text-white">{topic.title}</p>
+              <p className="text-sm font-semibold text-slate-900">{topic.title}</p>
               <StatusChip label={topic.priority} variant={priorityMap[topic.priority]} />
             </div>
-            <p className="text-sm text-slate-400">{topic.rationale}</p>
+            <p className="text-sm text-slate-600">{topic.rationale}</p>
           </div>
         ))}
       </div>

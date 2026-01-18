@@ -50,11 +50,11 @@ const StudySession = ({ sessions, subjects, examDate }: StudySessionProps) => {
   }, [examDate]);
 
   return (
-    <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6" id="study">
+    <section className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)]" id="study">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-white">Study sessions</h3>
-          <p className="text-xs text-slate-400">Subject-based plan with catch-up tracking</p>
+          <h3 className="text-lg font-semibold text-slate-900">Study sessions</h3>
+          <p className="text-xs text-slate-500">Subject-based plan with catch-up tracking</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {subjects.map((subject) => (
@@ -64,8 +64,8 @@ const StudySession = ({ sessions, subjects, examDate }: StudySessionProps) => {
               onClick={() => setActiveSubject(subject)}
               className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] transition ${
                 activeSubject === subject
-                  ? "border-emerald-400 bg-emerald-400/10 text-emerald-200"
-                  : "border-slate-700 text-slate-400 hover:border-slate-500"
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                  : "border-slate-200 text-slate-500 hover:border-slate-300"
               }`}
             >
               {subject}
@@ -75,54 +75,54 @@ const StudySession = ({ sessions, subjects, examDate }: StudySessionProps) => {
       </div>
 
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Upcoming</p>
-          <p className="text-2xl font-semibold text-white">{upcomingCount}</p>
-          <p className="text-xs text-slate-400">Scheduled blocks</p>
+          <p className="text-2xl font-semibold text-slate-900">{upcomingCount}</p>
+          <p className="text-xs text-slate-500">Scheduled blocks</p>
         </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Missed</p>
-          <p className="text-2xl font-semibold text-amber-200">{missedCount}</p>
-          <p className="text-xs text-slate-400">Reschedule to stay on track</p>
+          <p className="text-2xl font-semibold text-amber-700">{missedCount}</p>
+          <p className="text-xs text-slate-500">Reschedule to stay on track</p>
         </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Completed</p>
-          <p className="text-2xl font-semibold text-emerald-200">{completedMinutes} min</p>
-          <p className="text-xs text-slate-400">For {activeSubject || "all subjects"}</p>
+          <p className="text-2xl font-semibold text-emerald-700">{completedMinutes} min</p>
+          <p className="text-xs text-slate-500">For {activeSubject || "all subjects"}</p>
         </div>
       </div>
 
       {examCountdown !== null && (
-        <div className="mb-4 rounded-2xl border border-indigo-500/40 bg-indigo-500/10 p-4 text-sm text-indigo-100">
-          {examCountdown} days left until exam — prioritize weak topics now.
+        <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
+          {examCountdown} days left until exam. Prioritize weak topics now.
         </div>
       )}
 
       <div className="space-y-3">
         {subjectSessions.length === 0 ? (
-          <p className="text-sm text-slate-400">No sessions logged for this subject yet.</p>
+          <p className="text-sm text-slate-500">No sessions logged for this subject yet.</p>
         ) : (
           subjectSessions.map((session) => (
-            <div key={session.id} className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
-              <div className="flex items-start justify-between">
+            <div key={session.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-white">
+                  <p className="text-sm font-semibold text-slate-900">
                     {session.subject}
-                    {session.topic ? ` • ${session.topic}` : ""}
+                    {session.topic ? ` | ${session.topic}` : ""}
                   </p>
-                  <p className="text-xs text-slate-400">{new Date(session.date).toLocaleDateString()}</p>
-                  <p className="text-sm text-slate-300">{session.notes || "No notes added"}</p>
+                  <p className="text-xs text-slate-500">{new Date(session.date).toLocaleDateString()}</p>
+                  <p className="text-sm text-slate-600">{session.notes || "No notes added"}</p>
                   <div className="flex flex-wrap gap-2 pt-1">
-                    <span className="rounded-full bg-slate-800 px-3 py-1 text-[11px] uppercase tracking-[0.25em] text-slate-200">
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] uppercase tracking-[0.25em] text-slate-600">
                       {session.kind || "practice"}
                     </span>
                     <span
                       className={`rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.25em] ${
                         session.status === "completed"
-                          ? "bg-emerald-500/20 text-emerald-100"
+                          ? "bg-emerald-100 text-emerald-700"
                           : session.status === "missed"
-                            ? "bg-amber-500/20 text-amber-200"
-                            : "bg-slate-700 text-slate-200"
+                            ? "bg-amber-100 text-amber-700"
+                            : "bg-slate-200 text-slate-700"
                       }`}
                     >
                       {session.status}
@@ -131,7 +131,7 @@ const StudySession = ({ sessions, subjects, examDate }: StudySessionProps) => {
                 </div>
                 <div className="text-right">
                   <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Duration</p>
-                  <p className="text-lg font-semibold text-white">{session.durationMinutes} min</p>
+                  <p className="text-lg font-semibold text-slate-900">{session.durationMinutes} min</p>
                 </div>
               </div>
             </div>

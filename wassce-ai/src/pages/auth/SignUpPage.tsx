@@ -2,6 +2,7 @@ import { Apple, Chrome, Eye, EyeOff, GraduationCap } from "lucide-react";
 import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { isSupabaseConfigured, supabase } from "../../utils/supabase";
 
 const providerAccounts = {
   google: {
@@ -23,6 +24,7 @@ const providerAccounts = {
 export default function SignUpPage() {
   const { isAuthenticated, register, signIn } = useAuth();
   const navigate = useNavigate();
+  const supabaseEnabled = Boolean(isSupabaseConfigured && supabase);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -76,6 +78,20 @@ export default function SignUpPage() {
 
   const handleProvider = async (provider: keyof typeof providerAccounts) => {
     setError(null);
+    if (supabaseEnabled && supabase) {
+      setBusy(true);
+      try {
+        const { error } = await supabase.auth.signInWithOAuth({ provider });
+        if (error) throw new Error(error.message);
+      } catch (caught) {
+        const message = caught instanceof Error ? caught.message : "Unable to continue with provider.";
+        setError(message);
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
+
     const account = providerAccounts[provider];
     setBusy(true);
     try {
@@ -312,4 +328,3 @@ export default function SignUpPage() {
     </div>
   );
 }
-

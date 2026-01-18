@@ -66,46 +66,49 @@ const WeaknessDetection = ({ studyStats, studySessions, subjects }: WeaknessDete
   }, [recentReviewCounts, studyStats]);
 
   return (
-    <section className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6">
+    <section className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
       <div className="mb-4 flex items-center justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Weakness detection</p>
-          <h3 className="text-2xl font-semibold text-white">Confidence & gaps</h3>
-          <p className="text-xs text-slate-400">Tracking {subjects.length} subjects</p>
+          <h3 className="text-2xl font-semibold text-slate-900">Confidence and gaps</h3>
+          <p className="text-xs text-slate-500">Tracking {subjects.length} subjects</p>
         </div>
-        <span className="text-xs uppercase tracking-[0.3em] text-emerald-300">Live</span>
+        <span className="text-xs uppercase tracking-[0.3em] text-emerald-700">Live</span>
       </div>
 
       {weaknesses.length === 0 ? (
-        <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 text-sm text-slate-300">
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
           Not enough quiz or review data yet. Log quiz scores and mark review sessions as completed to unlock targeted recommendations.
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {weaknesses.map((weakness, index) => (
-            <div key={`${weakness.subject}-${weakness.topic ?? index}`} className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+            <div
+              key={`${weakness.subject}-${weakness.topic ?? index}`}
+              className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+            >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-slate-400 uppercase tracking-[0.2em]">{formatSubject(weakness.subject)}</p>
-                  {weakness.topic && <p className="text-lg font-semibold text-white">{weakness.topic}</p>}
-                  {!weakness.topic && <p className="text-lg font-semibold text-white">Topic focus pending</p>}
+                  <p className="text-sm uppercase tracking-[0.2em] text-slate-500">{formatSubject(weakness.subject)}</p>
+                  {weakness.topic && <p className="text-lg font-semibold text-slate-900">{weakness.topic}</p>}
+                  {!weakness.topic && <p className="text-lg font-semibold text-slate-900">Topic focus pending</p>}
                 </div>
-                <span className="rounded-full bg-amber-500/20 px-3 py-1 text-xs font-semibold uppercase text-amber-200">
+                <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase text-amber-700">
                   Action needed
                 </span>
               </div>
-              <ul className="mt-3 space-y-1 text-sm text-slate-300">
+              <ul className="mt-3 space-y-1 text-sm text-slate-600">
                 {weakness.reasons.map((reason) => (
-                  <li key={reason}>• {reason}</li>
+                  <li key={reason}>- {reason}</li>
                 ))}
               </ul>
-              <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900/80 p-3">
-                <p className="text-xs uppercase tracking-[0.3em] text-slate-500 mb-2">Recommended next steps</p>
+              <div className="mt-3 rounded-xl border border-slate-200 bg-white p-3">
+                <p className="mb-2 text-xs uppercase tracking-[0.3em] text-slate-500">Recommended next steps</p>
                 <div className="flex flex-wrap gap-2">
                   {weakness.actions.map((action) => (
                     <span
                       key={action}
-                      className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-100"
+                      className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700"
                     >
                       {action}
                     </span>

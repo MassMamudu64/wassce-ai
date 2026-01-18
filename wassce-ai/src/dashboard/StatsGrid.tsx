@@ -12,12 +12,12 @@ const StatsGrid = ({ stats, layout = "inline" }: StatsGridProps) => {
       {stats.map((stat) => (
         <div
           key={stat.label}
-          className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-lg shadow-slate-900/40"
+          className="rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-[0_14px_30px_rgba(15,23,42,0.06)]"
         >
           <p className="text-xs uppercase tracking-[0.5em] text-slate-500">{stat.label}</p>
-          <p className="text-3xl font-semibold text-white">{stat.value}</p>
-          <p className="text-sm text-slate-400">{stat.trend}</p>
-          {stat.helper && <p className="text-xs text-emerald-300">{stat.helper}</p>}
+          <p className="text-3xl font-semibold text-slate-900">{stat.value}</p>
+          <p className="text-sm text-slate-600">{stat.trend}</p>
+          {stat.helper && <p className="text-xs text-emerald-700">{stat.helper}</p>}
         </div>
       ))}
     </section>

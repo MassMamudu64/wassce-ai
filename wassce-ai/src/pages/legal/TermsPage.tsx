@@ -7,16 +7,15 @@ export default function TermsPage() {
         <header className="space-y-2">
           <h1 className="text-3xl font-semibold tracking-tight text-slate-950">Terms of Service</h1>
           <p className="text-sm text-slate-600">
-            This app is a demo study platform. Accounts are stored locally in your browser unless you integrate a real
-            backend.
+            This app can run in demo mode with local browser storage or connect to Supabase for real user accounts.
           </p>
         </header>
 
         <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold">1. Local demo data</h2>
           <p className="text-sm leading-relaxed text-slate-700">
-            WASSCE AI stores authentication data and study progress in your browser storage for demo purposes. Clearing
-            your browser data will remove your account and progress.
+            In demo mode, authentication data and study progress stay in your browser. When Supabase is configured, data
+            is stored in your Supabase project and follows your security rules.
           </p>
         </section>
 
@@ -45,4 +44,3 @@ export default function TermsPage() {
     </div>
   );
 }
-

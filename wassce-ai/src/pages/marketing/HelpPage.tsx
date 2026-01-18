@@ -2,10 +2,10 @@ import { Link } from "react-router-dom";
 import MarketingLayout from "./MarketingLayout";
 
 const steps = [
-  { t: "1. Create an account", d: "Sign up locally and go straight to the dashboard." },
+  { t: "1. Create an account", d: "Sign up to access your dashboard (demo local or Supabase-backed)." },
   { t: "2. Set up your profile", d: "Choose subjects and exam date to generate your daily plan." },
   { t: "3. Start a session", d: "Use Quizzes, Past Papers, or Flashcards, then log the work." },
-  { t: "4. Track progress", d: "Results save automatically so tomorrow’s plan stays accurate." },
+  { t: "4. Track progress", d: "Results save automatically so tomorrow's plan stays accurate." },
 ] as const;
 
 export default function HelpPage() {
@@ -51,4 +51,3 @@ export default function HelpPage() {
     </MarketingLayout>
   );
 }
-

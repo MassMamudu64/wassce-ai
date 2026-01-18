@@ -1,14 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Bot, Gamepad2, Layers, ListChecks } from "lucide-react";
+import { BarChart3, Flame, ListChecks, Timer } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 
 const aiInsights = [
-  "Generating a personalized quiz for Physics…",
-  "Analyzing weak topics in Mathematics…",
-  "Creating flashcards for Organic Chemistry…",
-  "Planning your next study blocks…",
-  "Preparing revision games for Biology…",
+  "Scanning past papers for weak topics...",
+  "Building a focused quiz for Cell Biology...",
+  "Drafting a revision plan for Mathematics...",
+  "Ranking topics by confidence score...",
+  "Preparing flashcards for Organic Chemistry...",
+];
+
+const highlightCards = [
+  { title: "Study streak", value: "6 days", icon: Flame, tone: "bg-amber-100 text-amber-700" },
+  { title: "Exam countdown", value: "82 days", icon: Timer, tone: "bg-emerald-100 text-emerald-700" },
+  { title: "Accuracy trend", value: "+12%", icon: BarChart3, tone: "bg-slate-200 text-slate-700" },
+  { title: "Next quiz", value: "15 questions", icon: ListChecks, tone: "bg-teal-100 text-teal-700" },
 ];
 
 interface HeroSectionProps {
@@ -32,19 +39,19 @@ export default function HeroSection({ onOpenLogin }: HeroSectionProps) {
       timer = setTimeout(() => {
         setCurrentMessage(currentMsg.substring(0, charIndex + 1));
         setCharIndex((prev) => prev + 1);
-      }, 40);
+      }, 36);
     } else if (isDeleting && charIndex > 0) {
       timer = setTimeout(() => {
         setCurrentMessage(currentMsg.substring(0, charIndex - 1));
         setCharIndex((prev) => prev - 1);
-      }, 25);
+      }, 24);
     } else if (!isDeleting && charIndex === currentMsg.length) {
       timer = setTimeout(() => setIsDeleting(true), 1600);
     } else if (isDeleting && charIndex === 0) {
       timer = setTimeout(() => {
         setIsDeleting(false);
         setMsgIndex((prev) => (prev + 1) % messages.length);
-      }, 300);
+      }, 280);
     }
 
     return () => {
@@ -53,90 +60,101 @@ export default function HeroSection({ onOpenLogin }: HeroSectionProps) {
   }, [charIndex, isDeleting, messages, msgIndex]);
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(99,102,241,0.1)_0%,rgba(0,0,0,0)_70%)]" />
+    <section className="relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(15,118,110,0.08)_0%,rgba(255,255,255,0)_55%)]" />
+      <div className="absolute -top-24 right-0 h-80 w-80 rounded-full bg-amber-200/70 blur-3xl" />
+      <div className="absolute -bottom-32 left-0 h-96 w-96 rounded-full bg-emerald-200/50 blur-3xl" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="text-center lg:text-left">
-            <p className="text-sm uppercase tracking-[0.3em] text-cyan-300/80">WASSCE AI</p>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-slate-300">
-              Smarter learning for
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-white"> WASSCE students</span>
-            </h1>
+      <div className="mx-auto flex max-w-7xl flex-col gap-12 px-6 py-20 lg:grid lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+        <div className="space-y-8">
+          <div className="landing-fade-up landing-delay-1 inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600 shadow-sm">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            WASSCE AI workspace
+          </div>
+          <h1 className="landing-display landing-fade-up landing-delay-2 text-4xl font-semibold leading-tight text-slate-900 sm:text-5xl lg:text-6xl">
+            Your daily WASSCE plan, built by AI and kept simple.
+          </h1>
+          <p className="landing-fade-up landing-delay-3 max-w-2xl text-lg text-slate-600">
+            Know what to study today, practice past papers, and track progress after every session. Everything you need,
+            in one clear workspace.
+          </p>
 
-            <p className="mt-6 max-w-2xl mx-auto lg:mx-0 text-lg text-slate-400 leading-relaxed">
-              Plan sessions, practice questions, and track progress — all in one daily workspace.
-            </p>
-
-            <div className="mt-8 flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
-              {isAuthenticated ? (
-                <Link
-                  to="/dashboard/overview"
-                  className="rounded-xl bg-indigo-600 px-8 py-3.5 font-semibold text-white hover:bg-indigo-700 transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-indigo-500/20"
-                >
-                  Open Dashboard
-                </Link>
-              ) : (
-                <button
-                  type="button"
-                  onClick={onOpenLogin}
-                  className="rounded-xl bg-indigo-600 px-8 py-3.5 font-semibold text-white hover:bg-indigo-700 transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-indigo-500/20"
-                >
-                  Get Started
-                </button>
-              )}
-
-              <a
-                href="#features"
-                className="rounded-xl border border-slate-700 px-8 py-3.5 font-semibold text-slate-200 hover:bg-slate-800/80 transition-all duration-300 backdrop-blur-sm"
+          <div className="landing-fade-up landing-delay-3 flex flex-col gap-4 sm:flex-row">
+            {isAuthenticated ? (
+              <Link
+                to="/dashboard/overview"
+                className="rounded-2xl bg-slate-900 px-8 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(15,23,42,0.25)] transition hover:bg-slate-800"
               >
-                See Features
-              </a>
+                Open dashboard
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={onOpenLogin}
+                className="rounded-2xl bg-slate-900 px-8 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(15,23,42,0.25)] transition hover:bg-slate-800"
+              >
+                Start free
+              </button>
+            )}
+            <a
+              href="#features"
+              className="rounded-2xl border border-slate-300 bg-white/70 px-8 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400"
+            >
+              Explore the tools
+            </a>
+          </div>
+
+          <div className="landing-fade-up landing-delay-3 grid grid-cols-2 gap-4 pt-4 text-sm sm:grid-cols-3">
+            {[
+              { label: "Students learning weekly", value: "2,400+" },
+              { label: "Past papers indexed", value: "120+" },
+              { label: "Average setup time", value: "10 min" },
+            ].map((stat) => (
+              <div key={stat.label} className="rounded-2xl border border-slate-200/80 bg-white/70 px-4 py-3">
+                <div className="text-lg font-semibold text-slate-900">{stat.value}</div>
+                <div className="text-xs uppercase tracking-[0.2em] text-slate-500">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="relative space-y-5 lg:justify-self-end">
+          <div className="landing-fade-up landing-delay-2 rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.12)]">
+            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+              <span>Today focus</span>
+              <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700">Streak 6</span>
+            </div>
+            <h3 className="mt-4 text-xl font-semibold text-slate-900">Integrated Science</h3>
+            <div className="mt-3 space-y-2 text-sm text-slate-600">
+              {["Kinematics summary", "Past paper: 2019 Q14", "Flashcards: energy basics"].map((item) => (
+                <div key={item} className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-amber-400" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-5 rounded-2xl bg-slate-900 px-4 py-3 text-sm text-emerald-200">
+              <span className="font-mono">AI:</span> {currentMessage}
+              <span className="ml-1 text-emerald-400">{!isDeleting && charIndex < messages[msgIndex].length ? "|" : ""}</span>
             </div>
           </div>
 
-          <div className="space-y-6">
-            <div className="bg-black/40 backdrop-blur-sm rounded-2xl border border-indigo-500/30 p-4">
-              <div className="flex items-center mb-3">
-                <span className="h-2.5 w-2.5 rounded-full bg-red-500 mr-2" />
-                <span className="h-2.5 w-2.5 rounded-full bg-yellow-500 mr-2" />
-                <span className="h-2.5 w-2.5 rounded-full bg-green-500" />
-                <span className="ml-2 text-xs text-slate-400">wassce-ai-engine</span>
+          <div className="landing-float grid grid-cols-2 gap-4">
+            {highlightCards.map((card) => (
+              <div
+                key={card.title}
+                className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 text-sm shadow-[0_18px_40px_rgba(15,23,42,0.12)]"
+              >
+                <div className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${card.tone}`}>
+                  <card.icon size={18} />
+                </div>
+                <div className="mt-3 font-semibold text-slate-900">{card.value}</div>
+                <div className="text-xs uppercase tracking-[0.2em] text-slate-500">{card.title}</div>
               </div>
-
-              <div className="text-sm text-green-400 font-mono rounded-lg">
-                <div className="text-indigo-300 mb-1">
-                  AI: {currentMessage}
-                  <span className="animate-pulse">{!isDeleting && charIndex < messages[msgIndex].length ? "|" : ""}</span>
-                </div>
-                <div className="text-slate-500 mt-2 flex items-center">
-                  <span className="h-2 w-2 bg-green-400 rounded-full mr-2 animate-pulse" />
-                  <span>Active • Processing insights</span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mt-6">
-                  {[
-                    { name: "Flashcards", icon: Layers, color: "bg-amber-500/20" },
-                    { name: "Quizzes", icon: ListChecks, color: "bg-emerald-500/20" },
-                    { name: "Study Games", icon: Gamepad2, color: "bg-rose-500/20" },
-                    { name: "AI Coach", icon: Bot, color: "bg-indigo-500/20" },
-                  ].map((item) => (
-                    <div
-                      key={item.name}
-                      className={`${item.color} backdrop-blur-sm rounded-xl py-3 px-4 border border-white/10 flex flex-col items-center justify-center`}
-                    >
-                      <item.icon size={22} className="mb-1 text-white" />
-                      <div className="text-xs text-slate-300 font-medium text-center">{item.name}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
     </section>
   );
 }
-

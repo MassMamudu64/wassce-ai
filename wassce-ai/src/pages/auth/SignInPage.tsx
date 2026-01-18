@@ -2,6 +2,7 @@ import { Apple, Chrome, Eye, EyeOff, GraduationCap, Monitor } from "lucide-react
 import { useMemo, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { isSupabaseConfigured, supabase } from "../../utils/supabase";
 
 type LocationState = { from?: { pathname?: string } };
 
@@ -33,6 +34,7 @@ export default function SignInPage() {
   const { isAuthenticated, signIn, register } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const supabaseEnabled = Boolean(isSupabaseConfigured && supabase);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -80,6 +82,21 @@ export default function SignInPage() {
 
   const handleProvider = async (provider: keyof typeof providerAccounts) => {
     setError(null);
+    if (supabaseEnabled && supabase) {
+      const oauthProvider = provider === "microsoft" ? "azure" : provider;
+      setBusy(true);
+      try {
+        const { error } = await supabase.auth.signInWithOAuth({ provider: oauthProvider });
+        if (error) throw new Error(error.message);
+      } catch (caught) {
+        const message = caught instanceof Error ? caught.message : "Unable to continue with provider.";
+        setError(message);
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
+
     const account = providerAccounts[provider];
     setBusy(true);
     try {

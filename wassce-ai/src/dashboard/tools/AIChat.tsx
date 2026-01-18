@@ -30,7 +30,6 @@ const AIChat = () => {
     const prefill = state?.prefill?.trim();
     if (!prefill) return;
     setInput((current) => (current.trim() ? current : prefill));
-    // Clear state so refresh/back doesn't keep re-prefilling.
     window.history.replaceState({}, "");
   }, [location.state]);
 
@@ -61,7 +60,8 @@ const AIChat = () => {
           messages: [
             {
               role: "system",
-              content: "You are a helpful WASSCE study assistant. Provide clear, accurate answers to questions about WASSCE subjects including Mathematics, English, Biology, Chemistry, Physics, and other relevant topics. Keep responses educational and encouraging.",
+              content:
+                "You are a helpful WASSCE study assistant. Provide clear, accurate answers to questions about WASSCE subjects including Mathematics, English, Biology, Chemistry, Physics, and other relevant topics. Keep responses educational and encouraging.",
             },
             ...thread.map((msg) => ({
               role: msg.role,
@@ -113,39 +113,37 @@ const AIChat = () => {
   };
 
   return (
-    <div className="space-y-4 rounded-2xl border border-white/10 bg-gradient-to-br from-purple-500/10 to-purple-500/30 p-5">
+    <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-5">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.4em] text-slate-500">AI Study Assistant</p>
-          <h3 className="text-lg font-semibold text-white">Chat with AI Tutor</h3>
+          <h3 className="text-lg font-semibold text-slate-900">Chat with AI Tutor</h3>
         </div>
-        <div className="text-xs uppercase tracking-[0.4em] text-emerald-300">
-          {hasApiKey ? "API Connected" : "API Key Required"}
+        <div className={`text-xs uppercase tracking-[0.4em] ${hasApiKey ? "text-emerald-700" : "text-amber-700"}`}>
+          {hasApiKey ? "API connected" : "API key required"}
         </div>
       </div>
 
       {!hasApiKey && (
-        <div className="rounded-lg border border-amber-400/30 bg-amber-400/10 p-3">
-          <p className="text-sm text-amber-200">
-            Add your OpenAI API key in Settings to enable chat.
-          </p>
-          <Link to="/dashboard/settings" className="mt-2 inline-flex text-xs font-semibold uppercase tracking-[0.3em] text-amber-200 hover:text-white">
-            Open settings →
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <p className="text-sm text-amber-700">Add your OpenAI API key in Settings to enable chat.</p>
+          <Link
+            to="/dashboard/settings"
+            className="mt-2 inline-flex text-xs font-semibold uppercase tracking-[0.3em] text-amber-700 hover:text-amber-900"
+          >
+            Open settings
           </Link>
         </div>
       )}
 
-      <div className="h-64 space-y-3 overflow-y-auto rounded-lg border border-white/10 bg-slate-900/50 p-3">
+      <div className="h-64 space-y-3 overflow-y-auto rounded-lg border border-slate-200 bg-white p-3">
         {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-          >
+          <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
             <div
               className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
                 message.role === "user"
-                  ? "bg-emerald-500/20 text-emerald-100"
-                  : "bg-slate-700/50 text-slate-200"
+                  ? "bg-emerald-100 text-emerald-800"
+                  : "bg-slate-100 text-slate-700"
               }`}
             >
               {message.content}
@@ -154,9 +152,7 @@ const AIChat = () => {
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="max-w-[80%] rounded-lg bg-slate-700/50 px-3 py-2 text-sm text-slate-200">
-              Thinking...
-            </div>
+            <div className="max-w-[80%] rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-700">Thinking...</div>
           </div>
         )}
       </div>
@@ -164,11 +160,11 @@ const AIChat = () => {
       <div className="flex gap-2">
         <textarea
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(event) => setInput(event.target.value)}
           onKeyDown={handleKeyDown}
           disabled={!hasApiKey || loading}
           placeholder={hasApiKey ? "Ask me anything about your studies..." : "API key required"}
-          className="flex-1 rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-white placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none"
+          className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none"
           rows={2}
         />
         <button
@@ -176,8 +172,8 @@ const AIChat = () => {
           disabled={!input.trim() || !hasApiKey || loading}
           className={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${
             hasApiKey && input.trim() && !loading
-              ? "border-emerald-400 bg-emerald-400/20 text-emerald-200 hover:bg-emerald-400/30"
-              : "cursor-not-allowed border-slate-600 bg-slate-700/50 text-slate-400"
+              ? "border-slate-900 bg-slate-900 text-white hover:bg-slate-800"
+              : "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
           }`}
         >
           Send

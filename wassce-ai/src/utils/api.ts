@@ -1,3 +1,5 @@
+import { isSupabaseConfigured, supabase } from "./supabase";
+
 export type LearningStat = {
   label: string;
   value: string;
@@ -171,10 +173,27 @@ const defaultSnapshot: LearningSnapshot = {
   ],
 };
 
-export const fetchLearningSnapshot = async (): Promise<LearningSnapshot> => {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(defaultSnapshot), 200);
-  });
+export const fetchLearningSnapshot = async (userId?: string): Promise<LearningSnapshot> => {
+  if (!isSupabaseConfigured || !supabase || !userId) {
+    return defaultSnapshot;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("learning_snapshots")
+      .select("snapshot")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (data?.snapshot) return data.snapshot as LearningSnapshot;
+
+    await supabase.from("learning_snapshots").insert({ user_id: userId, snapshot: defaultSnapshot });
+    return defaultSnapshot;
+  } catch (error) {
+    console.warn("Failed to load supabase snapshot, using defaults.", error);
+    return defaultSnapshot;
+  }
 };
 
 export const initialLearningSnapshot = defaultSnapshot;

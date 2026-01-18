@@ -79,7 +79,7 @@ export default function QuizRunner({
           isFinished ? (
             <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700">
               Score: <span className="font-semibold text-slate-900">{score}</span> / {questions.length} ({accuracy}%)
-              <span className="ml-3 text-xs text-slate-500">{savedResult ? "Saved to Progress" : "Saving…"}</span>
+              <span className="ml-3 text-xs text-slate-500">{savedResult ? "Saved to Progress" : "Saving..."}</span>
             </div>
           ) : undefined
         }
@@ -90,7 +90,7 @@ export default function QuizRunner({
               onClick={onReset}
               className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
             >
-              New Attempt
+              New attempt
             </button>
           ) : (
             <button
@@ -98,7 +98,7 @@ export default function QuizRunner({
               onClick={onFinish}
               className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100"
             >
-              Finish Attempt
+              Finish attempt
             </button>
           )
         }
@@ -119,7 +119,7 @@ export default function QuizRunner({
         <main className="flex flex-col bg-slate-50">
           {paletteCollapsed ? (
             <div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-5 py-3">
-              <p className="text-sm font-semibold text-slate-900">Question Palette</p>
+              <p className="text-sm font-semibold text-slate-900">Question palette</p>
               <button
                 type="button"
                 onClick={onExpandPalette}
@@ -151,9 +151,9 @@ export default function QuizRunner({
                 <div className="mx-5 mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm">
                   <div className="text-slate-700">
                     <span className="font-semibold text-slate-900">
-                      {Object.values(answers).filter((v) => v !== null && v !== undefined).length}/{questions.length}
+                      {Object.values(answers).filter((value) => value !== null && value !== undefined).length}/{questions.length}
                     </span>{" "}
-                    answered • <span className="font-semibold text-slate-900">{flaggedIds.size}</span> flagged •{" "}
+                    answered | <span className="font-semibold text-slate-900">{flaggedIds.size}</span> flagged |{" "}
                     <Link to="/dashboard/progress" className="font-semibold text-blue-700 hover:text-blue-800">
                       View progress
                     </Link>

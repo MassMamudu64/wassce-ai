@@ -43,6 +43,37 @@ export default defineConfig([
 ])
 ```
 
+## Supabase setup
+1. Create a Supabase project and copy the Project URL and anon key.
+2. Add these to `.env`:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+3. Create the `learning_snapshots` table in Supabase:
+
+```sql
+create table if not exists public.learning_snapshots (
+  user_id uuid primary key references auth.users on delete cascade,
+  snapshot jsonb not null,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.learning_snapshots enable row level security;
+
+create policy "Users can read their snapshot"
+  on public.learning_snapshots for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert their snapshot"
+  on public.learning_snapshots for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can update their snapshot"
+  on public.learning_snapshots for update
+  using (auth.uid() = user_id);
+```
+
+For local development, you can disable email confirmation in Supabase auth settings to simplify sign-up.
+
 You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
 ```js

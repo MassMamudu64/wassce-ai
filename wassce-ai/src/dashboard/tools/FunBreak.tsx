@@ -89,40 +89,40 @@ export default function FunBreak() {
   };
 
   return (
-    <div className="space-y-4 rounded-2xl border border-white/10 bg-gradient-to-br from-rose-500/10 to-rose-500/30 p-5">
+    <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-5">
       <div className="grid gap-3 md:grid-cols-3">
-        <div className="rounded-xl border border-white/10 bg-slate-900/40 p-4">
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-200">Pomodoro</p>
-          <p className="text-3xl font-semibold text-white">{formatTime(pomodoroTimeLeft)}</p>
-          <p className="text-xs text-slate-300">Mode: {pomodoroMode === "focus" ? "Focus" : "Break"}</p>
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Pomodoro</p>
+          <p className="text-3xl font-semibold text-slate-900">{formatTime(pomodoroTimeLeft)}</p>
+          <p className="text-xs text-slate-500">Mode: {pomodoroMode === "focus" ? "Focus" : "Break"}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => setPomodoroRunning((running) => !running)}
-              className="rounded bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white"
+              className="rounded bg-slate-900 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white"
             >
               {pomodoroRunning ? "Pause" : "Start"}
             </button>
             <button
               type="button"
               onClick={resetPomodoro}
-              className="rounded bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white"
+              className="rounded border border-slate-200 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600"
             >
               Reset
             </button>
           </div>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-slate-900/40 p-4">
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-200">Break reminders</p>
-          <p className="text-sm text-slate-100">
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Break reminders</p>
+          <p className="text-sm text-slate-600">
             {breakReminder || "Auto-reminders keep you pacing focus and rest."}
           </p>
         </div>
 
-        <div className={`rounded-xl border p-4 ${burnoutSignal ? "border-amber-400/60 bg-amber-400/10" : "border-white/10 bg-slate-900/40"}`}>
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-200">Burnout check</p>
-          <p className="text-sm text-slate-100">
+        <div className={`rounded-xl border p-4 ${burnoutSignal ? "border-amber-200 bg-amber-50" : "border-slate-200 bg-white"}`}>
+          <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Burnout check</p>
+          <p className="text-sm text-slate-600">
             {burnoutSignal
               ? `High load today (${burnoutMinutes} min). Add a break now.`
               : "Pacing looks healthy. Keep taking short breaks."}

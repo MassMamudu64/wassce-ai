@@ -8,10 +8,10 @@ export default function DashboardTopicsPage() {
 
   return (
     <div className="space-y-6">
-      <header className="rounded-3xl border border-slate-800 bg-slate-900/50 p-6">
+      <header className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
         <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Topics</p>
-        <h1 className="text-2xl font-semibold text-white">Mastery & focus</h1>
-        <p className="mt-2 text-sm text-slate-400">Use this view to pick what to study next and why.</p>
+        <h1 className="text-2xl font-semibold text-slate-900">Mastery and focus</h1>
+        <p className="mt-2 text-sm text-slate-600">Use this view to pick what to study next and why.</p>
       </header>
 
       <TopicSpotlight topics={topics} />
@@ -23,4 +23,3 @@ export default function DashboardTopicsPage() {
     </div>
   );
 }
-

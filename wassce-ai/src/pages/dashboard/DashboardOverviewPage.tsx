@@ -78,7 +78,7 @@ export default function DashboardOverviewPage() {
     }
 
     return {
-      title: `${next.subject}${next.topic ? ` → ${next.topic}` : ""}`,
+      title: `${next.subject}${next.topic ? ` | ${next.topic}` : ""}`,
       duration: `${next.durationMinutes} min`,
       detail: next.notes || "Planned study session",
       mood: next.missed ? "Catch up" : "Ready",
@@ -110,7 +110,7 @@ export default function DashboardOverviewPage() {
         label: "Quiz accuracy",
         value: avgAccuracy === null ? "--" : `${avgAccuracy}%`,
         trend: avgAccuracy === null ? "Take a quiz to start tracking" : avgAccuracy >= 70 ? "On track" : "Needs focus",
-        helper: avgAccuracy === null ? "Tools → Quizzes" : undefined,
+        helper: avgAccuracy === null ? "Tools -> Quizzes" : undefined,
       },
     ];
   }, [studentProfile, streakDays, studySessions, studyStats]);
@@ -119,21 +119,21 @@ export default function DashboardOverviewPage() {
     return (
       <div className="space-y-6">
         <StudentProfileSetup />
-        <section className="rounded-3xl border border-slate-800 bg-slate-900/40 p-6">
-          <h2 className="text-xl font-semibold text-white">What happens next</h2>
-          <p className="mt-2 text-sm text-slate-400">
-            After setup, your dashboard shows today’s plan, recommended tools, and progress tracking.
+        <section className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
+          <h2 className="text-xl font-semibold text-slate-900">What happens next</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            After setup, your dashboard shows today's plan, recommended tools, and progress tracking.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
             <Link
               to="/dashboard/tools/quizzes"
-              className="rounded-xl border border-emerald-400/60 bg-emerald-400/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-emerald-400/20"
+              className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
             >
               Try a quick quiz
             </Link>
             <Link
               to="/dashboard/past-papers"
-              className="rounded-xl border border-slate-800 px-4 py-2 text-sm font-semibold text-slate-200 hover:border-slate-600"
+              className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:border-slate-300"
             >
               Browse past papers
             </Link>
@@ -154,32 +154,29 @@ export default function DashboardOverviewPage() {
         />
       </div>
 
-      <div className="col-span-12 lg:col-span-8 space-y-6">
-        <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6">
+      <div className="col-span-12 space-y-6 lg:col-span-8">
+        <section className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="max-w-xl">
               <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Today</p>
-              <h2 className="text-2xl font-semibold text-white">One focused block</h2>
-              <p className="mt-1 text-sm text-slate-400">
+              <h2 className="text-2xl font-semibold text-slate-900">One focused block</h2>
+              <p className="mt-1 text-sm text-slate-600">
                 Start with a quiz or a past paper set, then log the session so your plan stays accurate.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Link
-                to="/dashboard/tools/quizzes"
-                className="rounded-xl border border-emerald-400/60 bg-emerald-400/10 px-4 py-2 text-sm font-semibold text-emerald-100 hover:bg-emerald-400/20"
-              >
+              <Link to="/dashboard/tools/quizzes" className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
                 Take a quiz
               </Link>
               <Link
                 to="/dashboard/past-papers"
-                className="rounded-xl border border-slate-800 px-4 py-2 text-sm font-semibold text-slate-200 hover:border-slate-600"
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:border-slate-300"
               >
                 Past papers
               </Link>
               <Link
                 to="/dashboard/planner"
-                className="rounded-xl border border-slate-800 px-4 py-2 text-sm font-semibold text-slate-200 hover:border-slate-600"
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:border-slate-300"
               >
                 Planner
               </Link>
@@ -227,23 +224,23 @@ export default function DashboardOverviewPage() {
           ]}
         />
 
-        <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6">
+        <section className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Activity</p>
-              <h3 className="text-xl font-semibold text-white">Keep it light</h3>
-              <p className="mt-1 text-sm text-slate-400">A quick snapshot. Use “View all” when you’re ready.</p>
+              <h3 className="text-xl font-semibold text-slate-900">Keep it light</h3>
+              <p className="mt-1 text-sm text-slate-600">A quick snapshot. Use "View all" when you are ready.</p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Link
                 to="/dashboard/topics"
-                className="rounded-xl border border-slate-800 px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-200 hover:border-slate-600"
+                className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600 hover:border-slate-300"
               >
                 View all topics
               </Link>
               <Link
                 to="/dashboard/progress"
-                className="rounded-xl border border-slate-800 px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-200 hover:border-slate-600"
+                className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600 hover:border-slate-300"
               >
                 View progress
               </Link>
@@ -256,12 +253,12 @@ export default function DashboardOverviewPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6">
+        <section className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Insights</p>
-              <h3 className="text-xl font-semibold text-white">Go deeper when you want</h3>
-              <p className="mt-1 text-sm text-slate-400">
+              <h3 className="text-xl font-semibold text-slate-900">Go deeper when you want</h3>
+              <p className="mt-1 text-sm text-slate-600">
                 Topic spotlight and weakness detection are available, but hidden by default to keep this page focused.
               </p>
             </div>
@@ -269,7 +266,7 @@ export default function DashboardOverviewPage() {
               type="button"
               onClick={() => setShowInsights((prev) => !prev)}
               aria-expanded={showInsights}
-              className="rounded-xl border border-slate-800 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-200 hover:border-slate-600"
+              className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600 hover:border-slate-300"
             >
               {showInsights ? "Hide insights" : "Show insights"}
             </button>
@@ -281,20 +278,20 @@ export default function DashboardOverviewPage() {
               <WeaknessDetection studyStats={studyStats} studySessions={studySessions} subjects={studentProfile.subjects} />
             </div>
           ) : (
-            <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950/40 p-4 text-sm text-slate-300">
+            <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
               Tip: If you feel stuck, open insights to see where to focus next and what to review this week.
             </div>
           )}
         </section>
       </div>
 
-      <div className="col-span-12 lg:col-span-4 space-y-6">
+      <div className="col-span-12 space-y-6 lg:col-span-4">
         <StatsGrid stats={overviewStats} layout="stacked" />
 
-        <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6">
+        <section className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
           <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Shortcuts</p>
-          <h3 className="mt-1 text-lg font-semibold text-white">View full pages</h3>
-          <p className="mt-1 text-sm text-slate-400">When you want the full detail, jump straight in.</p>
+          <h3 className="mt-1 text-lg font-semibold text-slate-900">View full pages</h3>
+          <p className="mt-1 text-sm text-slate-600">When you want the full detail, jump straight in.</p>
           <div className="mt-4 grid gap-2">
             {[
               { label: "Planner", to: "/dashboard/planner" },
@@ -306,7 +303,7 @@ export default function DashboardOverviewPage() {
               <Link
                 key={item.to}
                 to={item.to}
-                className="rounded-2xl border border-slate-800 bg-slate-950/40 px-4 py-2 text-sm font-semibold text-slate-200 hover:border-slate-600"
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 hover:border-slate-300"
               >
                 {item.label}
               </Link>
@@ -317,4 +314,3 @@ export default function DashboardOverviewPage() {
     </div>
   );
 }
-

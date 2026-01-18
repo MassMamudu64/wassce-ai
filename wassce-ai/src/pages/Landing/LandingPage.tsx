@@ -11,11 +11,13 @@ const LandingPage = () => {
   const openSignIn = () => navigate("/auth/signin");
 
   return (
-    <div className="bg-slate-50 min-h-screen text-slate-900">
+    <div className="landing-theme min-h-screen">
       <LandingNavbar onLoginOpen={openSignUp} />
-      <HeroSection onOpenLogin={openSignUp} />
-      <FeaturesSection />
-      <CTASection onOpenLogin={openSignIn} />
+      <main>
+        <HeroSection onOpenLogin={openSignUp} />
+        <FeaturesSection />
+        <CTASection onOpenLogin={openSignIn} />
+      </main>
       <FooterSection />
     </div>
   );

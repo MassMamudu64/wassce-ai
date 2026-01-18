@@ -2,7 +2,10 @@ import MarketingLayout from "./MarketingLayout";
 
 const faqs = [
   { q: "Is WASSCE AI free?", a: "You can study with sample content for free. AI features require your own API key." },
-  { q: "Where is my data stored?", a: "Accounts and progress are stored locally in your browser (demo mode)." },
+  {
+    q: "Where is my data stored?",
+    a: "In demo mode, accounts and progress stay in your browser. With Supabase configured, data lives in your Supabase project.",
+  },
   { q: "How do AI quizzes work?", a: "Pick a subject and we generate exam-style MCQs; results save to Progress." },
   { q: "Will AI show answers?", a: "In-quiz AI hints are subtle by design. You can review correct answers after finishing." },
 ] as const;
@@ -21,4 +24,3 @@ export default function FaqPage() {
     </MarketingLayout>
   );
 }
-

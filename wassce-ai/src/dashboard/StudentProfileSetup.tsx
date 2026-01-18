@@ -16,6 +16,7 @@ const availableSubjects = [
 export default function StudentProfileSetup() {
   const { user } = useAuth();
   const { setStudentProfile } = useLearningStore();
+  const userRef = user?.id ?? user?.email ?? "default";
 
   const todayString = useMemo(() => new Date().toISOString().split("T")[0], []);
 
@@ -49,7 +50,7 @@ export default function StudentProfileSetup() {
     }
 
     setStudentProfile({
-      id: user?.email ?? "default",
+      id: userRef,
       name: user?.name ?? "Student",
       subjects,
       examYear,
@@ -59,24 +60,24 @@ export default function StudentProfileSetup() {
   };
 
   return (
-    <section className="rounded-[32px] border border-slate-800 bg-slate-900/50 p-6">
+    <section className="rounded-[32px] border border-slate-200 bg-white/80 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
       <div className="space-y-1">
         <p className="text-xs uppercase tracking-[0.4em] text-slate-500">First time setup</p>
-        <h1 className="text-2xl font-semibold text-white">Set up your study profile</h1>
-        <p className="text-sm text-slate-400">This creates your exam countdown and daily plan. You can edit it later.</p>
+        <h1 className="text-2xl font-semibold text-slate-900">Set up your study profile</h1>
+        <p className="text-sm text-slate-600">This creates your exam countdown and daily plan. You can edit it later.</p>
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
+        <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Subjects</p>
           <div className="grid grid-cols-2 gap-2">
             {availableSubjects.map((subject) => (
-              <label key={subject} className="flex items-center gap-2 text-sm text-slate-200">
+              <label key={subject} className="flex items-center gap-2 text-sm text-slate-700">
                 <input
                   type="checkbox"
                   checked={subjects.includes(subject)}
                   onChange={(event) => toggleSubject(subject, event.target.checked)}
-                  className="h-4 w-4 accent-emerald-500"
+                  className="h-4 w-4 accent-emerald-600"
                 />
                 <span>{subject}</span>
               </label>
@@ -84,7 +85,7 @@ export default function StudentProfileSetup() {
           </div>
         </div>
 
-        <div className="space-y-4 rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
+        <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <div>
             <label className="block text-xs uppercase tracking-[0.4em] text-slate-500">Exam date</label>
             <input
@@ -92,7 +93,7 @@ export default function StudentProfileSetup() {
               value={examDate}
               min={todayString}
               onChange={(event) => setExamDate(event.target.value)}
-              className="mt-2 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-white"
+              className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
             />
           </div>
 
@@ -103,7 +104,7 @@ export default function StudentProfileSetup() {
                 type="number"
                 value={examYear}
                 readOnly
-                className="mt-2 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-300"
+                className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-500"
               />
             </div>
             <div>
@@ -114,17 +115,17 @@ export default function StudentProfileSetup() {
                 min={15}
                 max={360}
                 onChange={(event) => setDailyGoalMinutes(Number(event.target.value))}
-                className="mt-2 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-white"
+                className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
               />
             </div>
           </div>
 
-          {error && <p className="text-sm text-rose-300">{error}</p>}
+          {error && <p className="text-sm text-rose-600">{error}</p>}
 
           <button
             type="button"
             onClick={saveProfile}
-            className="w-full rounded-2xl bg-gradient-to-r from-indigo-500 to-emerald-500 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white hover:from-indigo-400 hover:to-emerald-400 active:scale-[0.99]"
+            className="w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white transition hover:bg-slate-800 active:scale-[0.99]"
           >
             Save profile
           </button>
@@ -133,4 +134,3 @@ export default function StudentProfileSetup() {
     </section>
   );
 }
-
