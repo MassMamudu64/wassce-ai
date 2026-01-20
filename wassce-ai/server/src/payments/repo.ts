@@ -1,7 +1,20 @@
 import { pool } from "../db";
 import type { PaymentRecord, PaymentStatus, Provider } from "./types";
 
-const rowToRecord = (row: any): PaymentRecord => ({
+type PaymentRow = {
+  id: string;
+  provider: Provider;
+  amount: number;
+  phone: string;
+  currency: string;
+  external_ref: string | null;
+  status: PaymentStatus;
+  user_ref: string | null;
+  created_at: Date;
+  updated_at: Date;
+};
+
+const rowToRecord = (row: PaymentRow): PaymentRecord => ({
   id: row.id,
   provider: row.provider,
   amount: Number(row.amount),
@@ -48,4 +61,3 @@ export const findByExternalRef = async (externalRef: string) => {
   const { rows } = await pool.query(`select * from payments where external_ref=$1`, [externalRef]);
   return rows[0] ? rowToRecord(rows[0]) : null;
 };
-

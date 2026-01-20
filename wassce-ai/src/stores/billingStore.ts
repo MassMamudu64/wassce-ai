@@ -1,25 +1,39 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { upsertBillingState } from "../utils/supabaseData";
 
 type BillingState = {
-  premiumByUser: Record<string, boolean>;
+  userRef: string | null;
+  isPremium: boolean;
   lastPaymentId: string | null;
-  isPremium: (userRef: string | null | undefined) => boolean;
-  setPremium: (userRef: string, premium: boolean) => void;
+  setUserRef: (userRef: string | null) => void;
+  hydrate: (data: BillingStateData | null) => void;
+  setPremium: (premium: boolean) => void;
   setLastPaymentId: (id: string | null) => void;
 };
 
-export const useBillingStore = create<BillingState>()(
-  persist(
-    (set, get) => ({
-      premiumByUser: {},
-      lastPaymentId: null,
-      isPremium: (userRef) => Boolean(userRef && get().premiumByUser[userRef]),
-      setPremium: (userRef, premium) =>
-        set((state) => ({ premiumByUser: { ...state.premiumByUser, [userRef]: premium } })),
-      setLastPaymentId: (id) => set({ lastPaymentId: id }),
-    }),
-    { name: "billing-storage" },
-  ),
-);
+export type BillingStateData = {
+  isPremium: boolean;
+  lastPaymentId: string | null;
+};
 
+const persistState = (userRef: string | null, data: BillingStateData) => {
+  if (!userRef) return;
+  void upsertBillingState(userRef, data).catch(() => {});
+};
+
+const initialState: BillingStateData = { isPremium: false, lastPaymentId: null };
+
+export const useBillingStore = create<BillingState>()((set, get) => ({
+  userRef: null,
+  ...initialState,
+  setUserRef: (userRef) => set({ userRef }),
+  hydrate: (data) => set({ ...(data ?? initialState) }),
+  setPremium: (premium) => {
+    set({ isPremium: premium });
+    persistState(get().userRef, { isPremium: premium, lastPaymentId: get().lastPaymentId });
+  },
+  setLastPaymentId: (id) => {
+    set({ lastPaymentId: id });
+    persistState(get().userRef, { isPremium: get().isPremium, lastPaymentId: id });
+  },
+}));

@@ -60,23 +60,44 @@ export default function HeroSection({ onOpenLogin }: HeroSectionProps) {
   }, [charIndex, isDeleting, messages, msgIndex]);
 
   return (
-    <section className="relative overflow-hidden">
+    <section className="landing-hero relative overflow-hidden">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="hero-aurora" />
+        <div className="hero-aurora hero-aurora-secondary" />
+        <div className="hero-orbit hero-orbit-1">
+          <span className="hero-orbit-dot" />
+        </div>
+        <div className="hero-orbit hero-orbit-2">
+          <span className="hero-orbit-dot" />
+        </div>
+       
+    <span className="hero-orbit-dot" />
+         <div className="hero-comet hero-comet-1" />
+          <div className="hero-comet hero-comet-2" />
+         <div className="hero-comet hero-comet-4" />
+          <div className="hero-comet hero-comet-3" />
+         <div className="hero-comet hero-comet-1" />
+          <div className="hero-comet hero-comet-5" />
+         <div className="hero-comet hero-comet-1" />
+      </div>
+      
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(15,118,110,0.08)_0%,rgba(255,255,255,0)_55%)]" />
       <div className="absolute -top-24 right-0 h-80 w-80 rounded-full bg-amber-200/70 blur-3xl" />
       <div className="absolute -bottom-32 left-0 h-96 w-96 rounded-full bg-emerald-200/50 blur-3xl" />
 
       <div className="mx-auto flex max-w-7xl flex-col gap-12 px-6 py-20 lg:grid lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
         <div className="space-y-8">
+          <span className="hero-orbit-dot" />
           <div className="landing-fade-up landing-delay-1 inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600 shadow-sm">
             <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            WASSCE AI workspace
+            WASSCE AI workspace <span className="hero-orbit-dot" />
           </div>
           <h1 className="landing-display landing-fade-up landing-delay-2 text-4xl font-semibold leading-tight text-slate-900 sm:text-5xl lg:text-6xl">
             Your daily WASSCE plan, built by AI and kept simple.
           </h1>
           <p className="landing-fade-up landing-delay-3 max-w-2xl text-lg text-slate-600">
             Know what to study today, practice past papers, and track progress after every session. Everything you need,
-            in one clear workspace.
+            in one clear workspace. <span className="hero-orbit-dot" />
           </p>
 
           <div className="landing-fade-up landing-delay-3 flex flex-col gap-4 sm:flex-row">
@@ -133,6 +154,7 @@ export default function HeroSection({ onOpenLogin }: HeroSectionProps) {
                 </div>
               ))}
             </div>
+            
             <div className="mt-5 rounded-2xl bg-slate-900 px-4 py-3 text-sm text-emerald-200">
               <span className="font-mono">AI:</span> {currentMessage}
               <span className="ml-1 text-emerald-400">{!isDeleting && charIndex < messages[msgIndex].length ? "|" : ""}</span>

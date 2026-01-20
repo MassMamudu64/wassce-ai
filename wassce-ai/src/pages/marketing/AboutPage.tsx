@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import MarketingLayout from "./MarketingLayout";
+import AboutTeam from "./AboutTeam";
 
 const values = [
   { title: "Clarity", desc: "A daily workspace that tells you exactly what to do next." },
@@ -15,6 +16,7 @@ export default function AboutPage() {
       subtitle="We’re building a serious study platform for West African students—focused on practice, feedback, and daily momentum."
     >
       <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+        <AboutTeam />
         <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-slate-950">Why we exist</h2>
           <p className="mt-2 text-sm leading-relaxed text-slate-700">

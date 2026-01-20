@@ -48,7 +48,7 @@ export default function PricingPage() {
       <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-6 text-sm text-slate-700">
         <p className="font-semibold text-slate-900">What you get with AI</p>
         <p className="mt-2">
-          Your API key powers AI quizzes, in-quiz hints, flashcards, and chat. Keys are stored locally in your browser.
+          Your API key powers AI quizzes, in-quiz hints, flashcards, and chat. Keys are stored securely in Supabase.
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <Link to="/auth/signup" className="rounded-xl border border-slate-200 px-4 py-2 font-semibold hover:bg-slate-50">
@@ -62,4 +62,3 @@ export default function PricingPage() {
     </MarketingLayout>
   );
 }
-

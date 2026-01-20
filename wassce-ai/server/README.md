@@ -1,7 +1,7 @@
 # Payments API (MTN MoMo + Lonestar Cell Money)
 
 ## Run locally
-1. Create a Postgres DB and set `DATABASE_URL`.
+1. Create a Postgres DB (Supabase Postgres is supported) and set `DATABASE_URL`.
 2. Copy `server/.env.example` to `server/.env` and fill credentials.
 3. Start the API: `npm run dev:api`
 4. Start the frontend: `npm run dev`
@@ -32,4 +32,3 @@ Set:
 - `LONESTAR_BASE_URL`, `LONESTAR_MERCHANT_ID`, `LONESTAR_API_KEY`, `LONESTAR_API_SECRET`
 - `LONESTAR_INIT_PATH` and `LONESTAR_STATUS_PATH` (`{ref}` placeholder)
 - Optional: `LONESTAR_CALLBACK_URL` (public URL to `.../api/webhooks/lonestar`)
-

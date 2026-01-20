@@ -1,59 +1,35 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { GameType } from "../../types/domain";
+import { createMathState, type MathState } from "./funBreakUtils";
 
 interface Props {
   game: GameType;
   score: number;
   setScore: React.Dispatch<React.SetStateAction<number>>;
   timeLeft: number;
+  memoryCards: number[];
+  wordPrompt: string;
+  mathSeed: MathState;
   onEnd: () => void;
 }
 
-export default function FunBreakGame({ game, score, setScore, timeLeft, onEnd }: Props) {
-  const [cards, setCards] = useState<number[]>([]);
+export default function FunBreakGame({ game, score, setScore, timeLeft, onEnd, memoryCards, wordPrompt, mathSeed }: Props) {
   const [flipped, setFlipped] = useState<number[]>([]);
   const [matched, setMatched] = useState<number[]>([]);
 
-  const [question, setQuestion] = useState("");
+  const [question, setQuestion] = useState(mathSeed.question);
   const [answer, setAnswer] = useState("");
   const [correct, setCorrect] = useState<boolean | null>(null);
-  const [solution, setSolution] = useState(0);
-
-  const [prompt, setPrompt] = useState("");
+  const [solution, setSolution] = useState(mathSeed.solution);
   const [input, setInput] = useState("");
 
   const generateMath = () => {
-    const a = Math.floor(Math.random() * 20) + 1;
-    const b = Math.floor(Math.random() * 20) + 1;
-    const ops = ["+", "-", "*"];
-    const op = ops[Math.floor(Math.random() * ops.length)];
-
-    const sol = op === "+" ? a + b : op === "-" ? a - b : a * b;
-
-    setQuestion(`${a} ${op} ${b}`);
-    setSolution(sol);
+    const next = createMathState();
+    setQuestion(next.question);
+    setSolution(next.solution);
     setAnswer("");
     setCorrect(null);
   };
-
-  useEffect(() => {
-    if (game === "memory") {
-      setCards([1, 1, 2, 2, 3, 3, 4, 4].sort(() => Math.random() - 0.5));
-      setFlipped([]);
-      setMatched([]);
-    }
-
-    if (game === "math") generateMath();
-
-    if (game === "word") {
-      const prompts = [
-        "Name 5 animals that live in water",
-        "List 3 African countries",
-        "Name 4 programming languages",
-      ];
-      setPrompt(prompts[Math.floor(Math.random() * prompts.length)]);
-    }
-  }, [game]);
 
   return (
     <>
@@ -66,7 +42,7 @@ export default function FunBreakGame({ game, score, setScore, timeLeft, onEnd }:
 
       {game === "memory" && (
         <div className="grid grid-cols-4 gap-2">
-          {cards.map((card, index) => (
+          {memoryCards.map((card, index) => (
             <button
               key={`${card}-${index}`}
               onClick={() => {
@@ -74,7 +50,7 @@ export default function FunBreakGame({ game, score, setScore, timeLeft, onEnd }:
                 const nextFlipped = [...flipped, index];
                 setFlipped(nextFlipped);
 
-                if (nextFlipped.length === 2 && cards[nextFlipped[0]] === cards[nextFlipped[1]]) {
+                if (nextFlipped.length === 2 && memoryCards[nextFlipped[0]] === memoryCards[nextFlipped[1]]) {
                   setMatched([...matched, card]);
                   setScore((value) => value + 10);
                 }
@@ -117,7 +93,7 @@ export default function FunBreakGame({ game, score, setScore, timeLeft, onEnd }:
 
       {game === "word" && (
         <>
-          <p className="text-slate-700">{prompt}</p>
+          <p className="text-slate-700">{wordPrompt}</p>
           <textarea
             value={input}
             onChange={(event) => setInput(event.target.value)}

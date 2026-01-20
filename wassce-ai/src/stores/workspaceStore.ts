@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { upsertWorkspaceState } from "../utils/supabaseData";
 
 export type WorkspaceNote = {
   id: string;
@@ -18,9 +18,12 @@ export type WhiteboardDiagram = {
 };
 
 interface WorkspaceState {
+  userRef: string | null;
   notes: WorkspaceNote[];
   diagrams: WhiteboardDiagram[];
 
+  setUserRef: (userRef: string | null) => void;
+  hydrate: (data: WorkspaceStateData | null) => void;
   addNote: (note: Omit<WorkspaceNote, "id" | "createdAt">) => void;
   deleteNote: (id: string) => void;
 
@@ -31,52 +34,83 @@ interface WorkspaceState {
   resetWorkspace: () => void;
 }
 
-export const useWorkspaceStore = create<WorkspaceState>()(
-  persist(
-    (set, get) => ({
-      notes: [],
-      diagrams: [],
+export type WorkspaceStateData = {
+  notes: WorkspaceNote[];
+  diagrams: WhiteboardDiagram[];
+};
 
-      addNote: (note) =>
-        set((state) => ({
-          notes: [
-            {
-              id: `note-${Date.now()}`,
-              createdAt: new Date().toISOString(),
-              ...note,
-            },
-            ...state.notes,
-          ],
-        })),
+const serialize = (data: WorkspaceStateData) => JSON.parse(JSON.stringify(data)) as WorkspaceStateData;
 
-      deleteNote: (id) => set((state) => ({ notes: state.notes.filter((note) => note.id !== id) })),
+const selectState = (state: WorkspaceState): WorkspaceStateData => ({
+  notes: state.notes,
+  diagrams: state.diagrams,
+});
 
-      addDiagram: (diagram) =>
-        set((state) => ({
-          diagrams: [
-            {
-              id: `diagram-${Date.now()}`,
-              createdAt: new Date().toISOString(),
-              ...diagram,
-            },
-            ...state.diagrams,
-          ],
-        })),
+const persistState = (userRef: string | null, data: WorkspaceStateData) => {
+  if (!userRef) return;
+  void upsertWorkspaceState(userRef, serialize(data)).catch(() => {});
+};
 
-      updateDiagram: (id, updates) => {
-        const diagrams = get().diagrams;
-        const index = diagrams.findIndex((diagram) => diagram.id === id);
-        if (index < 0) return;
+const initialState: WorkspaceStateData = { notes: [], diagrams: [] };
 
-        const next = diagrams.slice();
-        next[index] = { ...next[index], ...updates };
-        set({ diagrams: next });
-      },
+export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
+  userRef: null,
+  ...initialState,
 
-      deleteDiagram: (id) => set((state) => ({ diagrams: state.diagrams.filter((diagram) => diagram.id !== id) })),
+  setUserRef: (userRef) => set({ userRef }),
+  hydrate: (data) => set({ ...(data ?? initialState) }),
 
-      resetWorkspace: () => set({ notes: [], diagrams: [] }),
-    }),
-    { name: "workspace-storage" },
-  ),
-);
+  addNote: (note) => {
+    set((state) => ({
+      notes: [
+        {
+          id: `note-${Date.now()}`,
+          createdAt: new Date().toISOString(),
+          ...note,
+        },
+        ...state.notes,
+      ],
+    }));
+    persistState(get().userRef, selectState(get()));
+  },
+
+  deleteNote: (id) => {
+    set((state) => ({ notes: state.notes.filter((note) => note.id !== id) }));
+    persistState(get().userRef, selectState(get()));
+  },
+
+  addDiagram: (diagram) => {
+    set((state) => ({
+      diagrams: [
+        {
+          id: `diagram-${Date.now()}`,
+          createdAt: new Date().toISOString(),
+          ...diagram,
+        },
+        ...state.diagrams,
+      ],
+    }));
+    persistState(get().userRef, selectState(get()));
+  },
+
+  updateDiagram: (id, updates) => {
+    const diagrams = get().diagrams;
+    const index = diagrams.findIndex((diagram) => diagram.id === id);
+    if (index < 0) return;
+
+    const next = diagrams.slice();
+    next[index] = { ...next[index], ...updates };
+    set({ diagrams: next });
+    persistState(get().userRef, selectState(get()));
+  },
+
+  deleteDiagram: (id) => {
+    set((state) => ({ diagrams: state.diagrams.filter((diagram) => diagram.id !== id) }));
+    persistState(get().userRef, selectState(get()));
+  },
+
+  resetWorkspace: () => {
+    set({ ...initialState });
+    persistState(get().userRef, selectState(get()));
+  },
+}));

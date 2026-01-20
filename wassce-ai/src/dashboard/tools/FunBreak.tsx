@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FunBreakMenu from "./FunBreakMenu";
 import FunBreakGame from "./FunBreakGame";
 import type { GameType } from "../../types/domain";
 import { useLearningStore } from "../../stores/learningStore";
+import { createMathState, createMemoryCards, createWordPrompt, type MathState } from "./funBreakUtils";
 
 const FOCUS_LENGTH = 25 * 60;
 const BREAK_LENGTH = 5 * 60;
@@ -25,6 +26,14 @@ export default function FunBreak() {
   const [pomodoroRunning, setPomodoroRunning] = useState(false);
   const [pomodoroTimeLeft, setPomodoroTimeLeft] = useState(FOCUS_LENGTH);
   const [reminder, setReminder] = useState<string | null>(null);
+  const pomodoroModeRef = useRef(pomodoroMode);
+  const [memoryCards, setMemoryCards] = useState<number[]>([]);
+  const [wordPrompt, setWordPrompt] = useState("");
+  const [mathSeed, setMathSeed] = useState<MathState>({ question: "", solution: 0 });
+
+  useEffect(() => {
+    pomodoroModeRef.current = pomodoroMode;
+  }, [pomodoroMode]);
 
   useEffect(() => {
     if (!gameStarted || timeLeft <= 0) return;
@@ -35,30 +44,45 @@ export default function FunBreak() {
 
   useEffect(() => {
     if (!pomodoroRunning) return;
-    const ticker = setInterval(() => setPomodoroTimeLeft((value) => value - 1), 1000);
+    const ticker = setInterval(() => {
+      setPomodoroTimeLeft((value) => {
+        if (value <= 1) {
+          const nextMode = pomodoroModeRef.current === "focus" ? "break" : "focus";
+          setPomodoroMode(nextMode);
+          setPomodoroRunning(false);
+          setReminder(
+            nextMode === "break"
+              ? "Break time! Step away for 5 minutes."
+              : "Focus block ready. Start a new 25-minute sprint.",
+          );
+          return nextMode === "break" ? BREAK_LENGTH : FOCUS_LENGTH;
+        }
+        return value - 1;
+      });
+    }, 1000);
     return () => clearInterval(ticker);
   }, [pomodoroRunning]);
-
-  useEffect(() => {
-    if (pomodoroTimeLeft > 0) return;
-    if (pomodoroMode === "focus") {
-      setReminder("Break time! Step away for 5 minutes.");
-      setPomodoroMode("break");
-      setPomodoroTimeLeft(BREAK_LENGTH);
-      setPomodoroRunning(false);
-    } else {
-      setReminder("Focus block ready. Start a new 25-minute sprint.");
-      setPomodoroMode("focus");
-      setPomodoroTimeLeft(FOCUS_LENGTH);
-      setPomodoroRunning(false);
-    }
-  }, [pomodoroMode, pomodoroTimeLeft]);
 
   const startGame = useCallback((game: GameType) => {
     setCurrentGame(game);
     setScore(0);
     setTimeLeft(30);
     setGameStarted(true);
+    if (game === "memory") {
+      setMemoryCards(createMemoryCards());
+      setWordPrompt("");
+      setMathSeed({ question: "", solution: 0 });
+      return;
+    }
+    if (game === "word") {
+      setWordPrompt(createWordPrompt());
+      setMemoryCards([]);
+      setMathSeed({ question: "", solution: 0 });
+      return;
+    }
+    setMathSeed(createMathState());
+    setMemoryCards([]);
+    setWordPrompt("");
   }, []);
 
   const endGame = () => {
@@ -133,7 +157,17 @@ export default function FunBreak() {
       {!gameStarted || !currentGame ? (
         <FunBreakMenu score={score} onStart={startGame} />
       ) : (
-        <FunBreakGame game={currentGame} score={score} setScore={setScore} timeLeft={timeLeft} onEnd={endGame} />
+        <FunBreakGame
+          key={currentGame}
+          game={currentGame}
+          score={score}
+          setScore={setScore}
+          timeLeft={timeLeft}
+          memoryCards={memoryCards}
+          wordPrompt={wordPrompt}
+          mathSeed={mathSeed}
+          onEnd={endGame}
+        />
       )}
     </div>
   );

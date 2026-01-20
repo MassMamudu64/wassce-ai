@@ -7,16 +7,16 @@ export default function PrivacyPage() {
         <header className="space-y-2">
           <h1 className="text-3xl font-semibold tracking-tight text-slate-950">Privacy Policy</h1>
           <p className="text-sm text-slate-600">
-            This app can run in demo mode locally or connect to Supabase for cloud storage.
+            This app stores data in Supabase.
           </p>
         </header>
 
         <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold">What we store</h2>
           <ul className="list-disc space-y-2 pl-5 text-sm leading-relaxed text-slate-700">
-            <li>Account details created during sign up (local demo or Supabase if configured)</li>
-            <li>Study progress and tool data (local demo or Supabase if configured)</li>
-            <li>Optional OpenAI API key you enter in Settings (stored locally)</li>
+            <li>Account details created during sign up (stored in Supabase)</li>
+            <li>Study progress and tool data (stored in Supabase)</li>
+            <li>Optional OpenAI API key you enter in Settings (stored in Supabase)</li>
           </ul>
         </section>
 
@@ -31,8 +31,7 @@ export default function PrivacyPage() {
         <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold">How to delete your data</h2>
           <p className="text-sm leading-relaxed text-slate-700">
-            Clear your site data in the browser to remove local demo data. For Supabase, delete your account data inside
-            your Supabase project.
+            Delete your account data inside your Supabase project or contact support for removal.
           </p>
         </section>
 

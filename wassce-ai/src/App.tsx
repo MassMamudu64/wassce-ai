@@ -4,6 +4,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { LearningProvider } from "./contexts/LearningContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { UIProvider } from "./contexts/UIContext";
+import SupabaseSync from "./contexts/SupabaseSync";
 import DashboardLayout from "./layout/DashboardLayout";
 import DashboardOverviewPage from "./pages/dashboard/DashboardOverviewPage";
 import DashboardToolsPage from "./pages/dashboard/DashboardToolsPage";
@@ -30,8 +31,9 @@ const App = () => {
   return (
     <AuthProvider>
       <UIProvider>
-        <LearningProvider>
-          <Router>
+        <SupabaseSync>
+          <LearningProvider>
+            <Router>
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/pricing" element={<PricingPage />} />
@@ -76,6 +78,7 @@ const App = () => {
             </Routes>
           </Router>
         </LearningProvider>
+        </SupabaseSync>
       </UIProvider>
     </AuthProvider>
   );

@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import MarketingLayout from "./MarketingLayout";
 
 const steps = [
-  { t: "1. Create an account", d: "Sign up to access your dashboard (demo local or Supabase-backed)." },
+  { t: "1. Create an account", d: "Sign up to access your dashboard with Supabase-backed data." },
   { t: "2. Set up your profile", d: "Choose subjects and exam date to generate your daily plan." },
   { t: "3. Start a session", d: "Use Quizzes, Past Papers, or Flashcards, then log the work." },
   { t: "4. Track progress", d: "Results save automatically so tomorrow's plan stays accurate." },

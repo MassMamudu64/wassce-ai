@@ -1,6 +1,6 @@
 export type PaperType = "objective" | "theory" | "practical";
 
-export type SourceType = "examry" | "studyforwassce" | "passcohub" | "waec";
+export type SourceType = "examry" | "studyforwassce" | "passcohub" | "waec" | "custom";
 
 export interface PastPaper {
   id: string;

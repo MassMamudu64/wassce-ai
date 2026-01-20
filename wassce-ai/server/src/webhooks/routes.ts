@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { Response } from "express";
 import { config } from "../config";
 import { findByExternalRef, setStatus } from "../payments/repo";
 import type { Provider } from "../payments/types";
@@ -6,9 +7,14 @@ import { getProvider } from "../providers";
 import { verifyHmac } from "../http/verifyWebhook";
 import type { RawBodyRequest } from "../http/rawBody";
 
-const getExternalRef = (body: any) => body?.externalRef ?? body?.referenceId ?? body?.reference ?? body?.ref ?? null;
+const getExternalRef = (body: unknown) => {
+  if (!body || typeof body !== "object") return null;
+  const payload = body as Record<string, unknown>;
+  const value = payload.externalRef ?? payload.referenceId ?? payload.reference ?? payload.ref;
+  return typeof value === "string" ? value : null;
+};
 
-const handleWebhook = async (providerId: Provider, req: RawBodyRequest, res: any) => {
+const handleWebhook = async (providerId: Provider, req: RawBodyRequest, res: Response) => {
   const secret = providerId === "mtn" ? config.webhook.momoSecret : config.webhook.lonestarSecret;
   const verified = secret ? verifyHmac(req, secret) : false;
   if (config.webhook.requireSignature && !verified) return res.status(401).json({ error: "Invalid signature" });
@@ -29,4 +35,3 @@ export const webhooksRouter = Router();
 
 webhooksRouter.post("/momo", async (req, res) => handleWebhook("mtn", req as RawBodyRequest, res));
 webhooksRouter.post("/lonestar", async (req, res) => handleWebhook("lonestar", req as RawBodyRequest, res));
-

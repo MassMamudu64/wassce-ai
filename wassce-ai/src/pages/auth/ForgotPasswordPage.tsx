@@ -126,11 +126,7 @@ export default function ForgotPasswordPage() {
 
         <h1 className="mt-10 text-3xl font-semibold tracking-tight text-slate-950">Reset your password</h1>
         <p className="mt-3 text-sm leading-relaxed text-slate-600">
-          {isSupabaseConfigured
-            ? isRecoveryFlow
-              ? "Set a new password to finish your reset."
-              : "Enter your email and we will send a password reset link."
-            : "This is a local demo reset. Enter your email and set a new password."}
+          {isRecoveryFlow ? "Set a new password to finish your reset." : "Enter your email and we will send a password reset link."}
         </p>
 
         <div className="mt-8 space-y-5">

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLearningStore } from "../../stores/learningStore";
 import { useBillingStore } from "../../stores/billingStore";
@@ -27,19 +27,24 @@ export default function Quizzes() {
 
   const studentId = useMemo(() => hashToStudentId(userRef ?? "guest@wassce.ai"), [userRef]);
   const subjectLabel = useMemo(() => formatSubjectLabel(selectedSubject), [selectedSubject]);
-  const premium = useMemo(() => billing.isPremium(userRef), [billing, userRef]);
+  const premium = billing.isPremium;
   const canUseAi = hasApiKey && premium;
 
-  useEffect(() => {
-    if (quiz.phase !== "finished") return;
-    if (savedResult) return;
-    if (quiz.questions.length === 0) return;
+  const saveResult = () => {
+    if (savedResult || quiz.questions.length === 0) return;
+
+    const correctCount = quiz.questions.reduce(
+      (count, question) => (quiz.answers[question.id] === question.correctIndex ? count + 1 : count),
+      0,
+    );
+    const accuracy =
+      quiz.questions.length === 0 ? 0 : Math.round((correctCount / quiz.questions.length) * 100);
 
     const today = new Date().toISOString().split("T")[0];
     updateStudyStat({
       subject: selectedSubject,
       topic: quiz.source === "ai" ? "ai-quiz" : "sample-quiz",
-      accuracy: quiz.accuracy,
+      accuracy,
       attempts: quiz.questions.length,
     });
     addStudySession({
@@ -49,11 +54,11 @@ export default function Quizzes() {
       completed: true,
       date: today,
       kind: "quiz",
-      notes: `Quiz completed: ${quiz.accuracy}%`,
+      notes: `Quiz completed: ${accuracy}%`,
       topic: quiz.source === "ai" ? "AI quiz" : "Sample quiz",
     });
     setSavedResult(true);
-  }, [addStudySession, quiz, savedResult, selectedSubject, subjectLabel, updateStudyStat]);
+  };
 
   if (quiz.phase === "setup") {
     return (
@@ -105,8 +110,8 @@ export default function Quizzes() {
       onToggleFlag={quiz.toggleFlag}
       onSelectAnswer={quiz.setAnswer}
       onFinish={() => {
-        quiz.finish();
-        setSavedResult(false);
+        if (!quiz.finish()) return;
+        saveResult();
       }}
       onReset={() => {
         quiz.reset();

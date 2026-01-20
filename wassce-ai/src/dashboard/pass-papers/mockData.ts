@@ -18,7 +18,7 @@ export const pastPapers: PastPaper[] = [
     paperType: 'theory',
     title: 'WASSCE English Language 2020 Theory Paper',
     hasAnswers: false,
-    pdfUrl: 'https://studyforwassce.com/wassce-english-language-2020-theory-paper/',
+    pdfUrl: 'https://lifemagnanimous.com/wp-content/uploads/2013/06/2013-mock-waec-final.pdf',
     source: 'studyforwassce'
   },
   {

@@ -72,6 +72,87 @@ create policy "Users can update their snapshot"
   using (auth.uid() = user_id);
 ```
 
+### Supabase data tables
+```sql
+create table if not exists public.user_profiles (
+  user_id uuid primary key references auth.users on delete cascade,
+  display_name text not null,
+  avatar_url text,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.user_settings (
+  user_id uuid primary key references auth.users on delete cascade,
+  openai_api_key text,
+  theme text,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.learning_states (
+  user_id uuid primary key references auth.users on delete cascade,
+  data jsonb not null,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.workspace_states (
+  user_id uuid primary key references auth.users on delete cascade,
+  data jsonb not null,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.billing_states (
+  user_id uuid primary key references auth.users on delete cascade,
+  is_premium boolean not null default false,
+  last_payment_id text,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.user_past_papers (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users on delete cascade,
+  subject text not null,
+  year integer not null,
+  paper_type text not null,
+  title text not null,
+  has_answers boolean not null default false,
+  pdf_url text not null,
+  source text not null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.user_profiles enable row level security;
+alter table public.user_settings enable row level security;
+alter table public.learning_states enable row level security;
+alter table public.workspace_states enable row level security;
+alter table public.billing_states enable row level security;
+alter table public.user_past_papers enable row level security;
+
+create policy "Profiles: user read" on public.user_profiles for select using (auth.uid() = user_id);
+create policy "Profiles: user upsert" on public.user_profiles for insert with check (auth.uid() = user_id);
+create policy "Profiles: user update" on public.user_profiles for update using (auth.uid() = user_id);
+create policy "Profiles: user delete" on public.user_profiles for delete using (auth.uid() = user_id);
+
+create policy "Settings: user read" on public.user_settings for select using (auth.uid() = user_id);
+create policy "Settings: user upsert" on public.user_settings for insert with check (auth.uid() = user_id);
+create policy "Settings: user update" on public.user_settings for update using (auth.uid() = user_id);
+
+create policy "Learning: user read" on public.learning_states for select using (auth.uid() = user_id);
+create policy "Learning: user upsert" on public.learning_states for insert with check (auth.uid() = user_id);
+create policy "Learning: user update" on public.learning_states for update using (auth.uid() = user_id);
+
+create policy "Workspace: user read" on public.workspace_states for select using (auth.uid() = user_id);
+create policy "Workspace: user upsert" on public.workspace_states for insert with check (auth.uid() = user_id);
+create policy "Workspace: user update" on public.workspace_states for update using (auth.uid() = user_id);
+
+create policy "Billing: user read" on public.billing_states for select using (auth.uid() = user_id);
+create policy "Billing: user upsert" on public.billing_states for insert with check (auth.uid() = user_id);
+create policy "Billing: user update" on public.billing_states for update using (auth.uid() = user_id);
+
+create policy "Past papers: user read" on public.user_past_papers for select using (auth.uid() = user_id);
+create policy "Past papers: user insert" on public.user_past_papers for insert with check (auth.uid() = user_id);
+create policy "Past papers: user delete" on public.user_past_papers for delete using (auth.uid() = user_id);
+```
+
 For local development, you can disable email confirmation in Supabase auth settings to simplify sign-up.
 
 You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:

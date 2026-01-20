@@ -10,16 +10,20 @@ export default function PassPaperExam({ paper, onComplete }: Props) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [timeLeft, setTimeLeft] = useState(paper.durationMinutes * 60);
-  const startTime = useRef(Date.now());
+  const startTime = useRef(0);
 
   const handleAnswer = (questionId: string, answer: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: answer }));
   };
 
   const handleSubmit = useCallback(() => {
-    const timeSpent = Math.round((Date.now() - startTime.current) / 60000);
+    const timeSpent = Math.round((performance.now() - startTime.current) / 60000);
     onComplete(answers, timeSpent);
   }, [answers, onComplete]);
+
+  useEffect(() => {
+    startTime.current = performance.now();
+  }, []);
 
   useEffect(() => {
     if (timeLeft <= 0) {

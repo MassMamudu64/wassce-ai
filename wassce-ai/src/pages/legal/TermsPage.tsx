@@ -7,15 +7,14 @@ export default function TermsPage() {
         <header className="space-y-2">
           <h1 className="text-3xl font-semibold tracking-tight text-slate-950">Terms of Service</h1>
           <p className="text-sm text-slate-600">
-            This app can run in demo mode with local browser storage or connect to Supabase for real user accounts.
+            This app stores account and learning data in Supabase.
           </p>
         </header>
 
         <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold">1. Local demo data</h2>
           <p className="text-sm leading-relaxed text-slate-700">
-            In demo mode, authentication data and study progress stay in your browser. When Supabase is configured, data
-            is stored in your Supabase project and follows your security rules.
+            Authentication data and study progress are stored in Supabase and follow your project security rules.
           </p>
         </section>
 

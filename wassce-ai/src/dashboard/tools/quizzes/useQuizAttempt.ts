@@ -25,7 +25,7 @@ type UseQuizAttempt = {
   setShowReviewAnswers: (next: boolean) => void;
   launch: (subject: Subject, canUseAi: boolean) => Promise<void>;
   backToSetup: () => void;
-  finish: () => void;
+  finish: () => boolean;
   reset: () => void;
   jumpTo: (index: number) => void;
   prev: () => void;
@@ -142,9 +142,10 @@ export const useQuizAttempt = (): UseQuizAttempt => {
     });
   };
   const finish = () => {
-    if (phase !== "active") return;
-    if (!window.confirm("Finish attempt now? You can review your answers after finishing.")) return;
+    if (phase !== "active") return false;
+    if (!window.confirm("Finish attempt now? You can review your answers after finishing.")) return false;
     setPhase("finished");
+    return true;
   };
 
   return {

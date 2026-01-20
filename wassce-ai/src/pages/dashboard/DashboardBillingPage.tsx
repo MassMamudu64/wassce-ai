@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useBillingStore } from "../../stores/billingStore";
 import BillingForm from "./billing/BillingForm";
@@ -12,7 +12,7 @@ export default function DashboardBillingPage() {
   const { user } = useAuth();
   const billing = useBillingStore();
   const userRef = user?.email ?? user?.id;
-  const premium = useMemo(() => billing.isPremium(userRef), [billing, userRef]);
+  const premium = billing.isPremium;
 
   const [provider, setProvider] = useState<Provider>("mtn");
   const [phone, setPhone] = useState("");
@@ -23,7 +23,7 @@ export default function DashboardBillingPage() {
 
   usePaymentPolling(billing.lastPaymentId, (next) => {
     setStatus(next);
-    if (next === "SUCCESS" && userRef) billing.setPremium(userRef, true);
+    if (next === "SUCCESS") billing.setPremium(true);
   });
 
   const payNow = async () => {

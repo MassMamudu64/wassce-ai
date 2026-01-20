@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { StudySession as PlannedSession } from "../types/profile";
 
 interface StudySessionProps {
@@ -12,11 +12,7 @@ type SessionStatus = "completed" | "upcoming" | "missed";
 const StudySession = ({ sessions, subjects, examDate }: StudySessionProps) => {
   const [activeSubject, setActiveSubject] = useState(subjects[0] ?? "");
 
-  useEffect(() => {
-    if (subjects.length > 0 && !subjects.includes(activeSubject)) {
-      setActiveSubject(subjects[0]);
-    }
-  }, [activeSubject, subjects]);
+  const effectiveSubject = subjects.includes(activeSubject) ? activeSubject : subjects[0] ?? "";
 
   const startOfToday = useMemo(() => {
     const now = new Date();
@@ -26,7 +22,7 @@ const StudySession = ({ sessions, subjects, examDate }: StudySessionProps) => {
 
   const subjectSessions = useMemo(() => {
     return sessions
-      .filter((session) => !activeSubject || session.subject === activeSubject)
+      .filter((session) => !effectiveSubject || session.subject === effectiveSubject)
       .map((session) => {
         const sessionDate = new Date(session.date);
         sessionDate.setHours(0, 0, 0, 0);
@@ -34,7 +30,7 @@ const StudySession = ({ sessions, subjects, examDate }: StudySessionProps) => {
         return { ...session, status };
       })
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [activeSubject, sessions, startOfToday]);
+  }, [effectiveSubject, sessions, startOfToday]);
 
   const missedCount = subjectSessions.filter((session) => session.status === "missed").length;
   const upcomingCount = subjectSessions.filter((session) => session.status === "upcoming").length;
@@ -45,9 +41,9 @@ const StudySession = ({ sessions, subjects, examDate }: StudySessionProps) => {
   const examCountdown = useMemo(() => {
     if (!examDate) return null;
     const target = new Date(examDate);
-    const diff = target.getTime() - Date.now();
+    const diff = target.getTime() - startOfToday.getTime();
     return diff >= 0 ? Math.ceil(diff / (1000 * 60 * 60 * 24)) : 0;
-  }, [examDate]);
+  }, [examDate, startOfToday]);
 
   return (
     <section className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)]" id="study">
@@ -63,7 +59,7 @@ const StudySession = ({ sessions, subjects, examDate }: StudySessionProps) => {
               type="button"
               onClick={() => setActiveSubject(subject)}
               className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] transition ${
-                activeSubject === subject
+                effectiveSubject === subject
                   ? "border-emerald-200 bg-emerald-50 text-emerald-700"
                   : "border-slate-200 text-slate-500 hover:border-slate-300"
               }`}
@@ -88,7 +84,7 @@ const StudySession = ({ sessions, subjects, examDate }: StudySessionProps) => {
         <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Completed</p>
           <p className="text-2xl font-semibold text-emerald-700">{completedMinutes} min</p>
-          <p className="text-xs text-slate-500">For {activeSubject || "all subjects"}</p>
+          <p className="text-xs text-slate-500">For {effectiveSubject || "all subjects"}</p>
         </div>
       </div>
 

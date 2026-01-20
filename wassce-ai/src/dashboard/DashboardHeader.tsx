@@ -10,7 +10,10 @@ interface DashboardHeaderProps {
 
 const DashboardHeader = ({ studentProfile, completionRate, nextSession, streakDays }: DashboardHeaderProps) => {
   const examDate = studentProfile.examDate ? new Date(studentProfile.examDate) : null;
-  const daysToExam = examDate ? Math.max(0, Math.ceil((examDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : null;
+  const today = new Date();
+  const daysToExam = examDate
+    ? Math.max(0, Math.ceil((examDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)))
+    : null;
 
   return (
     <section className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">

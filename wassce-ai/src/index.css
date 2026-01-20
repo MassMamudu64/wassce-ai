@@ -71,3 +71,178 @@ body {
 .landing-float {
   animation: landingFloat 6s ease-in-out infinite;
 }
+
+.landing-hero {
+  background: radial-gradient(1200px 500px at 12% 0%, rgba(16, 185, 129, 0.18), transparent 65%),
+    radial-gradient(900px 480px at 85% 12%, rgba(245, 158, 11, 0.16), transparent 62%),
+    linear-gradient(180deg, #f6f4ef 0%, #f3f4f6 55%, #f8fafc 100%);
+}
+
+.hero-aurora {
+  position: absolute;
+  inset: -30% -10%;
+  background:
+    radial-gradient(closest-side at 20% 25%, rgba(14, 116, 144, 0.35), transparent 70%),
+    radial-gradient(closest-side at 70% 20%, rgba(245, 158, 11, 0.28), transparent 68%),
+    radial-gradient(closest-side at 45% 80%, rgba(16, 185, 129, 0.3), transparent 70%);
+  filter: blur(60px);
+  opacity: 0.75;
+  transform: translate3d(0, 0, 0);
+  animation: auroraShift 20s ease-in-out infinite alternate;
+}
+
+.hero-aurora-secondary {
+  inset: -20% -30%;
+  opacity: 1.55;
+  animation-duration: 26s;
+  animation-direction: alternate-reverse;
+}
+
+.hero-orbit {
+  position: absolute;
+  border-radius: 999px;
+  border: 8px dashed rgba(3, 78, 72, 0.25);
+  opacity: 0.7;
+  animation: orbitSpin 28s linear infinite;
+}
+
+.hero-orbit-1 {
+  width: 420px;
+  height: 420px;
+  top: 12%;
+  right: -80px;
+}
+
+.hero-orbit-2 {
+  width: 520px;
+  height: 520px;
+  bottom: -120px;
+  left: -140px;
+  border-color: rgba(3, 27, 50, 0.959);
+  animation-duration: 36s;
+  animation-direction: reverse;
+}
+
+.hero-orbit-dot {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: radial-gradient(circle, #f59e0b 0%, rgba(245, 158, 11, 0.2) 65%, transparent 70%);
+  box-shadow: 0 0 18px rgba(245, 158, 11, 0.45);
+  transform: translateX(-50%);
+}
+
+.hero-comet {
+  position: absolute;
+  width: 180px;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent 0%, rgba(16, 185, 129, 0.9) 45%, transparent 100%);
+  filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.5));
+  opacity: 0;
+  animation: cometFly 14s ease-in-out infinite;
+}
+
+.hero-comet-1 {
+  top: 18%;
+  left: -20%;
+}
+
+.hero-comet-2 {
+  top: 58%;
+  left: -25%;
+  animation-delay: 4s;
+  animation-duration: 18s;
+}
+
+.hero-comet-3 {
+  top: 38%;
+  left: -30%;
+  animation-delay: 8s;
+  animation-duration: 13s;
+
+}
+
+.hero-comet-4 {
+  top: 78%;
+  left: -35%;
+  animation-delay: 12s;
+  animation-duration: 10s;
+}
+
+.hero-comet-5 {
+  top: 28%;
+  left: -40%;
+  animation-delay: 16s;
+  animation-duration: 16s;
+}
+
+@keyframes auroraShift {
+  0% {
+    transform: translate3d(-4%, -2%, 0) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translate3d(2%, 4%, 0) rotate(4deg) scale(1.03);
+  }
+  100% {
+    transform: translate3d(5%, -3%, 0) rotate(-3deg) scale(1.02);
+  }
+}
+
+@keyframes orbitSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes cometFly {
+  0% {
+    opacity: 0;
+    transform: translateX(0) translateY(0) scaleX(0.4);
+  }
+  12% {
+    opacity: 0.9;
+  }
+  60% {
+    opacity: 0.65;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(140vw) translateY(18vh) scaleX(1.1);
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-orbit-1 {
+    width: 320px;
+    height: 320px;
+    right: -120px;
+  }
+
+  .hero-orbit-2 {
+    display: block;
+    width: 420px;
+    height: 420px;
+    bottom: -100px;
+  }
+
+  .hero-comet {
+    width: 120px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-aurora,
+  .hero-orbit,
+  .hero-comet,
+  .landing-fade-up,
+  .landing-float {
+    animation: none;
+  }
+}

@@ -1,4 +1,4 @@
-export type StorageKey = "demoUser" | "registeredUsers" | "appSettings";
+export type StorageKey = "demoUser" | "registeredUsers" | "appSettings" | "userProfiles";
 
 const isBrowser = typeof window !== "undefined";
 
