@@ -1,0 +1,258 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img "WASSCE AI Logo" [ref=e7]
+        - generic [ref=e8]: WASSCE AI
+      - generic [ref=e9]:
+        - link "Features" [ref=e10] [cursor=pointer]:
+          - /url: "#features"
+        - link "How it Works" [ref=e11] [cursor=pointer]:
+          - /url: "#how-it-works"
+        - link "Pricing" [ref=e12] [cursor=pointer]:
+          - /url: /pricing
+      - generic [ref=e14]:
+        - link "Sign in" [ref=e15] [cursor=pointer]:
+          - /url: /auth/signin
+        - button "Start free" [ref=e16] [cursor=pointer]
+  - main [ref=e17]:
+    - generic [ref=e22]:
+      - generic [ref=e23]:
+        - generic [ref=e25]: WASSCE AI workspace
+        - heading "Your daily WASSCE plan, built by AI and kept simple." [level=1] [ref=e28]
+        - paragraph [ref=e29]: Know what to study today, practice past papers, and track progress after every session. Everything you need, in one clear workspace.
+        - generic [ref=e31]:
+          - button "Start free" [ref=e32] [cursor=pointer]
+          - link "Explore the tools" [ref=e33] [cursor=pointer]:
+            - /url: "#features"
+        - generic [ref=e34]:
+          - generic [ref=e35]:
+            - generic [ref=e36]: 2,400+
+            - generic [ref=e37]: Students learning weekly
+          - generic [ref=e38]:
+            - generic [ref=e39]: 120+
+            - generic [ref=e40]: Past papers indexed
+          - generic [ref=e41]:
+            - generic [ref=e42]: 10 min
+            - generic [ref=e43]: Average setup time
+      - generic [ref=e44]:
+        - generic [ref=e45]:
+          - generic [ref=e46]:
+            - generic [ref=e47]: Today focus
+            - generic [ref=e48]: Streak 6
+          - heading "Integrated Science" [level=3] [ref=e49]
+          - generic [ref=e50]:
+            - generic [ref=e53]: Kinematics summary
+            - generic [ref=e56]: "Past paper: 2019 Q14"
+            - generic [ref=e59]: "Flashcards: energy basics"
+          - generic [ref=e60]: "AI: Scanning past papers for weak topics..."
+        - generic [ref=e61]:
+          - generic [ref=e62]:
+            - img [ref=e64]
+            - generic [ref=e66]: 6 days
+            - generic [ref=e67]: Study streak
+          - generic [ref=e68]:
+            - img [ref=e70]
+            - generic [ref=e73]: 82 days
+            - generic [ref=e74]: Exam countdown
+          - generic [ref=e75]:
+            - img [ref=e77]
+            - generic [ref=e79]: +12%
+            - generic [ref=e80]: Accuracy trend
+          - generic [ref=e81]:
+            - img [ref=e83]
+            - generic [ref=e86]: 15 questions
+            - generic [ref=e87]: Next quiz
+    - generic [ref=e90]:
+      - generic [ref=e92]:
+        - generic [ref=e93]:
+          - paragraph [ref=e94]: How it works
+          - heading "A simple study loop that keeps you focused." [level=2] [ref=e95]
+          - paragraph [ref=e96]: WASSCE AI turns your plan into daily actions. You always know what to study next and why it matters.
+          - generic [ref=e97]:
+            - paragraph [ref=e98]: AI session check-in
+            - paragraph [ref=e99]: Your focus is 48 percent Mechanics. We will start with 12 questions and a 10 minute recap.
+        - generic [ref=e100]:
+          - generic [ref=e101]:
+            - generic [ref=e102]: Step 01
+            - heading "Set your focus" [level=3] [ref=e103]
+            - paragraph [ref=e104]: Pick a subject and exam year. We build a clear plan for what to do today.
+            - paragraph [ref=e105]: Daily plan updates after every session.
+          - generic [ref=e106]:
+            - generic [ref=e107]: Step 02
+            - heading "Practice with intent" [level=3] [ref=e108]
+            - paragraph [ref=e109]: Answer past papers and quizzes that target your weakest topics.
+            - paragraph [ref=e110]: Every question feeds your progress stats.
+          - generic [ref=e111]:
+            - generic [ref=e112]: Step 03
+            - heading "Review and adapt" [level=3] [ref=e113]
+            - paragraph [ref=e114]: Get feedback, revise with flashcards, and move on with confidence.
+            - paragraph [ref=e115]: Your next session is ready before you leave.
+      - generic [ref=e116]:
+        - generic [ref=e117]:
+          - generic [ref=e118]:
+            - paragraph [ref=e119]: Tools
+            - heading "Everything you need to study daily." [level=2] [ref=e120]
+          - paragraph [ref=e121]: Each tool connects to your dashboard, so your progress and plan update together.
+        - generic [ref=e122]:
+          - generic [ref=e123]:
+            - img [ref=e125]
+            - heading "Planner" [level=3] [ref=e128]
+            - paragraph [ref=e129]: A daily schedule with countdowns, streaks, and priorities.
+          - generic [ref=e130]:
+            - img [ref=e132]
+            - heading "Past Papers" [level=3] [ref=e135]
+            - paragraph [ref=e136]: WASSCE questions organized by subject and topic.
+          - generic [ref=e137]:
+            - img [ref=e139]
+            - heading "Quizzes" [level=3] [ref=e142]
+            - paragraph [ref=e143]: Short tests that focus on weak areas and track accuracy.
+          - generic [ref=e144]:
+            - img [ref=e146]
+            - heading "Progress" [level=3] [ref=e148]
+            - paragraph [ref=e149]: See mastery by topic, accuracy trend, and time spent.
+          - generic [ref=e150]:
+            - img [ref=e152]
+            - heading "Smart Notes" [level=3] [ref=e154]
+            - paragraph [ref=e155]: Turn messy notes into quick summaries and flashcards.
+      - generic [ref=e156]:
+        - generic [ref=e157]:
+          - generic [ref=e158]:
+            - paragraph [ref=e159]: What WASSCE AI offers
+            - heading "A complete prep stack, built for real exam flow." [level=2] [ref=e160]
+          - generic [ref=e161]:
+            - generic [ref=e162]:
+              - heading "Daily study plan" [level=3] [ref=e163]
+              - paragraph [ref=e164]: Clear priorities, streaks, and countdowns to keep momentum steady.
+            - generic [ref=e165]:
+              - heading "AI practice engine" [level=3] [ref=e166]
+              - paragraph [ref=e167]: Quizzes and past papers that target weak topics automatically.
+            - generic [ref=e168]:
+              - heading "Progress dashboard" [level=3] [ref=e169]
+              - paragraph [ref=e170]: Track accuracy, time spent, and mastery by topic.
+        - generic [ref=e171]:
+          - generic [ref=e172]:
+            - paragraph [ref=e173]: Mock exams
+            - heading "Practice with real WAEC structure." [level=3] [ref=e174]
+            - paragraph [ref=e175]: Timed sections, multiple choice format, and feedback that matches the real exam experience.
+          - generic [ref=e176]:
+            - paragraph [ref=e177]: Partners
+            - heading "National scale, trusted partners." [level=3] [ref=e178]
+            - generic [ref=e179]:
+              - generic [ref=e180]: WAEC
+              - generic [ref=e181]: Ministry of Education
+              - generic [ref=e182]: MTN
+      - generic [ref=e183]:
+        - generic [ref=e184]:
+          - paragraph [ref=e185]: Subjects covered
+          - heading "Core WASSCE subjects and electives." [level=2] [ref=e186]
+        - generic [ref=e187]:
+          - generic [ref=e188]: Mathematics
+          - generic [ref=e189]: English
+          - generic [ref=e190]: Integrated Science
+          - generic [ref=e191]: Biology
+          - generic [ref=e192]: Chemistry
+          - generic [ref=e193]: Physics
+          - generic [ref=e194]: Economics
+    - generic [ref=e198]:
+      - generic [ref=e199]:
+        - paragraph [ref=e200]: Ready for the next session
+        - heading "Start a focused study flow today." [level=2] [ref=e201]
+        - paragraph [ref=e202]: Your plan, practice, and progress stay connected. Students open the dashboard and immediately see what to do next.
+        - generic [ref=e203]:
+          - button "Start free" [ref=e204] [cursor=pointer]
+          - link "View pricing" [ref=e205] [cursor=pointer]:
+            - /url: /pricing
+        - generic [ref=e206]:
+          - generic [ref=e207]:
+            - paragraph [ref=e208]: AI coach check-in
+            - paragraph [ref=e209]: Your top focus is Mechanics. Start with 12 questions and a 10 minute recap.
+          - generic [ref=e210]:
+            - paragraph [ref=e211]: Next session ready
+            - paragraph [ref=e212]: We queue flashcards and past paper drills before you finish today.
+      - generic [ref=e213]:
+        - generic [ref=e214]:
+          - paragraph [ref=e215]: Sample flashcard
+          - paragraph [ref=e216]: Biology
+          - paragraph [ref=e217]: "WASSCE-style biology prompt: Outline the steps of transcription in gene expression."
+          - paragraph [ref=e218]: RNA polymerase binds the promoter, the double helix unwinds, and the enzyme reads the template strand to build an mRNA copy in the 5'→3' direction before releasing the strand at a terminator sequence.
+          - paragraph [ref=e219]: Sketch the DNA-RNA complex to show the direction of synthesis and label the promoter.
+        - generic [ref=e220]:
+          - paragraph [ref=e221]: Tomorrow plan
+          - generic [ref=e222]:
+            - generic [ref=e223]:
+              - generic [ref=e224]: Mathematics practice
+              - generic [ref=e225]: 25 min
+            - generic [ref=e226]:
+              - generic [ref=e227]: Chemistry flashcards
+              - generic [ref=e228]: 15 min
+            - generic [ref=e229]:
+              - generic [ref=e230]: Essay outline drill
+              - generic [ref=e231]: 20 min
+  - contentinfo [ref=e232]:
+    - generic [ref=e233]:
+      - generic [ref=e234]:
+        - generic [ref=e235]:
+          - generic [ref=e236]: WASSCE AI
+          - paragraph [ref=e237]: A focused learning platform for West African students preparing for WASSCE, designed to turn study time into daily momentum.
+        - generic [ref=e238]:
+          - heading "Quick links" [level=3] [ref=e239]
+          - list [ref=e240]:
+            - listitem [ref=e241]:
+              - link "Dashboard" [ref=e242] [cursor=pointer]:
+                - /url: /dashboard
+            - listitem [ref=e243]:
+              - link "Features" [ref=e244] [cursor=pointer]:
+                - /url: /features
+            - listitem [ref=e245]:
+              - link "Pricing" [ref=e246] [cursor=pointer]:
+                - /url: /pricing
+            - listitem [ref=e247]:
+              - link "About" [ref=e248] [cursor=pointer]:
+                - /url: /about
+        - generic [ref=e249]:
+          - heading "Resources" [level=3] [ref=e250]
+          - list [ref=e251]:
+            - listitem [ref=e252]:
+              - link "Blog" [ref=e253] [cursor=pointer]:
+                - /url: /blog
+            - listitem [ref=e254]:
+              - link "Help Center" [ref=e255] [cursor=pointer]:
+                - /url: /help
+            - listitem [ref=e256]:
+              - link "FAQ" [ref=e257] [cursor=pointer]:
+                - /url: /faq
+            - listitem [ref=e258]:
+              - link "Privacy Policy" [ref=e259] [cursor=pointer]:
+                - /url: /privacy
+        - generic [ref=e260]:
+          - heading "Contact" [level=3] [ref=e261]
+          - list [ref=e262]:
+            - listitem [ref=e263]:
+              - img [ref=e264]
+              - generic [ref=e267]: support@wassceai.com
+            - listitem [ref=e268]:
+              - img [ref=e269]
+              - generic [ref=e272]: Monrovia, Liberia
+            - listitem [ref=e273]:
+              - img [ref=e274]
+              - generic [ref=e276]: +231 88 123 4567
+      - generic [ref=e277]:
+        - paragraph [ref=e278]: Copyright (c) 2026 WASSCE AI. All rights reserved.
+        - generic [ref=e279]:
+          - link "Twitter" [ref=e280] [cursor=pointer]:
+            - /url: "#"
+          - link "Facebook" [ref=e281] [cursor=pointer]:
+            - /url: "#"
+          - link "Instagram" [ref=e282] [cursor=pointer]:
+            - /url: "#"
+          - link "LinkedIn" [ref=e283] [cursor=pointer]:
+            - /url: "#"
+        - generic [ref=e284]:
+          - text: Built with care by
+          - link "Mass" [ref=e285] [cursor=pointer]:
+            - /url: https://jula-tech.com
+```
