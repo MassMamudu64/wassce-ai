@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { UserProgress, StudyStat, DiagnosticResult, StudyPlan } from '../types/domain'
-import type { PassPaperAttempt, PassPaperStats } from '../core/types/passPaper'
+import type { PassPaperAttempt, PassPaperStats, PlannerSession } from '../core/types/passPaper'
 import type { StudentProfile, StudySession, StudyPlan as ProfileStudyPlan } from '../types/profile'
 import { upsertLearningState } from '../utils/supabaseData'
 
@@ -15,6 +15,7 @@ export type LearningStateData = {
   passPaperStats: PassPaperStats[]
   studySessions: StudySession[]
   studyPlanProfile: ProfileStudyPlan | null
+  plannerSessions: PlannerSession[]
 }
 
 interface LearningState {
@@ -29,6 +30,7 @@ interface LearningState {
   passPaperStats: PassPaperStats[]
   studySessions: StudySession[]
   studyPlanProfile: ProfileStudyPlan | null
+  plannerSessions: PlannerSession[]
 
   // Actions
   setUserRef: (userRef: string | null) => void
@@ -45,6 +47,9 @@ interface LearningState {
   updateStudySession: (id: string, updates: Partial<StudySession>) => void
   markMissedSessions: () => void
   setStudyPlanProfile: (plan: ProfileStudyPlan) => void
+  setPlannerSessions: (sessions: PlannerSession[]) => void
+  updatePlannerSession: (id: string, updates: Partial<PlannerSession>) => void
+  clearPlannerSessions: () => void
   resetProgress: () => void
 }
 
@@ -61,6 +66,7 @@ const selectState = (state: LearningState): LearningStateData => ({
   passPaperStats: state.passPaperStats,
   studySessions: state.studySessions,
   studyPlanProfile: state.studyPlanProfile,
+  plannerSessions: state.plannerSessions,
 })
 
 const persistState = (userRef: string | null, data: LearningStateData) => {
@@ -79,6 +85,7 @@ const initialState: LearningStateData = {
   passPaperStats: [],
   studySessions: [],
   studyPlanProfile: null,
+  plannerSessions: [],
 }
 
 export const useLearningStore = create<LearningState>()((set, get) => ({
@@ -201,6 +208,24 @@ export const useLearningStore = create<LearningState>()((set, get) => ({
 
   setStudyPlanProfile: (plan) => {
     set({ studyPlanProfile: plan })
+    persistState(get().userRef, selectState(get()))
+  },
+
+  setPlannerSessions: (sessions) => {
+    set({ plannerSessions: sessions })
+    persistState(get().userRef, selectState(get()))
+  },
+
+  updatePlannerSession: (id, updates) => {
+    const sessions = get().plannerSessions.map((s) =>
+      s.id === id ? { ...s, ...updates } : s,
+    )
+    set({ plannerSessions: sessions })
+    persistState(get().userRef, selectState(get()))
+  },
+
+  clearPlannerSessions: () => {
+    set({ plannerSessions: [] })
     persistState(get().userRef, selectState(get()))
   },
 

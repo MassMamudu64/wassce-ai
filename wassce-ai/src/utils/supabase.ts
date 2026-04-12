@@ -1,4 +1,6 @@
-    import { createClient } from "@supabase/supabase-js";
+// This module initializes the Supabase client with custom authentication storage that supports both localStorage and sessionStorage.
+
+import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
@@ -15,6 +17,7 @@ const hasSupabaseToken = (store: Storage) => {
   return false;
 };
 
+// Determine initial storage target based on existing tokens
 let authStorageTarget: Storage | null = null;
 
 if (isBrowser) {
@@ -64,3 +67,5 @@ export const supabase = isSupabaseConfigured
       },
     })
   : null;
+
+  // Note: The above code I’m getting the error “Supabase is not configured” in my Vite + React project.
