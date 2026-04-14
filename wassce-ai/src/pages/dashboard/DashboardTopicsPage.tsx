@@ -4,10 +4,8 @@ import { useLearningStore } from "../../stores/learningStore";
 import {
   useTopicMastery,
   useSubjectSummaries,
-  useDueTopicsCount,
   type TopicMastery,
 } from "../../stores/learningSelectors";
-import { subjectLabel } from "../../utils/subjects";
 import { BookOpen, ChevronDown, ChevronUp, Clock, Target } from "lucide-react";
 
 type FilterStatus = TopicMastery["status"] | "due" | "all";
@@ -30,7 +28,6 @@ export default function DashboardTopicsPage() {
   const { studentProfile } = useLearningStore();
   const topicMastery = useTopicMastery();
   const subjectSummaries = useSubjectSummaries();
-  const dueTopicsCount = useDueTopicsCount();
   const [expandedSubject, setExpandedSubject] = useState<string | null>(
     subjectSummaries.length > 0 ? subjectSummaries[0].subject : null,
   );

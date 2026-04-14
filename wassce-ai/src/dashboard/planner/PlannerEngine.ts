@@ -1,7 +1,6 @@
 import type { PlannerSession } from "../../core/types/passPaper";
 import type { StudyStat } from "../../types/domain";
 import {
-  getAllQuestions,
   getQuestionsBySubject,
   getQuestionsByTopic,
   getTopicsForSubject,
@@ -106,7 +105,7 @@ function buildTopicSession(
   scheduledDate: string,
   excludeIds: Set<string>,
 ): PlannerSession | null {
-  let pool = getQuestionsByTopic(subject, topic).filter((q) => !excludeIds.has(q.id));
+  const pool = getQuestionsByTopic(subject, topic).filter((q) => !excludeIds.has(q.id));
   if (pool.length === 0) return null;
 
   shuffle(pool);
@@ -132,12 +131,14 @@ function buildTopicSession(
     subject,
     topic,
     type: "past_paper",
+    reason: "weak",
     year: primaryYear,
     paper: selected[0].paper,
     questionIds: selected.map((q) => q.id),
     durationMinutes: Math.ceil(selected.length * MINUTES_PER_QUESTION),
     scheduledAt: scheduledDate,
     completed: false,
+    priorityScore: 0,
   };
 }
 
@@ -151,7 +152,7 @@ function buildMixedSession(
   scheduledDate: string,
   excludeIds: Set<string>,
 ): PlannerSession | null {
-  let pool = getQuestionsBySubject(subject).filter((q) => !excludeIds.has(q.id));
+  const pool = getQuestionsBySubject(subject).filter((q) => !excludeIds.has(q.id));
   if (pool.length === 0) return null;
 
   shuffle(pool);
@@ -165,12 +166,14 @@ function buildMixedSession(
     subject,
     topic: topics.length > 2 ? `Mixed (${topics.length} topics)` : topics.join(", "),
     type: "past_paper",
+    reason: "revision",
     year: selected[0].year,
     paper: selected[0].paper,
     questionIds: selected.map((q) => q.id),
     durationMinutes: Math.ceil(selected.length * MINUTES_PER_QUESTION),
     scheduledAt: scheduledDate,
     completed: false,
+    priorityScore: 0,
   };
 }
 
@@ -277,12 +280,14 @@ export function buildRetrySession(
     subject,
     topic: `Retry: ${topic}`,
     type: "past_paper",
+    reason: "weak",
     year: 0, // mixed
     paper: 0,
     questionIds: incorrectIds,
     durationMinutes: Math.ceil(incorrectIds.length * MINUTES_PER_QUESTION),
     scheduledAt: today(),
     completed: false,
+    priorityScore: 0,
   };
 }
 

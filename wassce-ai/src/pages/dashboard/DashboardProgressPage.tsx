@@ -9,6 +9,7 @@ import {
   useSubjectSummaries,
   useTopicMastery,
   useWeeklyActivity,
+  useDueTopicsCount,
 } from "../../stores/learningSelectors";
 import { subjectLabel } from "../../utils/subjects";
 import {
@@ -33,7 +34,7 @@ const gradeFromScore = (score: number) => {
 };
 
 export default function DashboardProgressPage() {
-  const { studentProfile, studySessions, studyStats, passPaperAttempts } = useLearningStore();
+  const { studentProfile, studySessions } = useLearningStore();
   const streak = useStudyStreak();
   const todayStats = useTodayStats();
   const overallAccuracy = useOverallAccuracy();
@@ -41,6 +42,7 @@ export default function DashboardProgressPage() {
   const subjectSummaries = useSubjectSummaries();
   const topicMastery = useTopicMastery();
   const weeklyActivity = useWeeklyActivity();
+  const dueTopicsCount = useDueTopicsCount();
 
   const predictedGrade = overallAccuracy !== null ? gradeFromScore(overallAccuracy) : "--";
 
@@ -49,8 +51,6 @@ export default function DashboardProgressPage() {
   const totalMinutes = studySessions
     .filter((s) => s.completed)
     .reduce((sum, s) => sum + s.durationMinutes, 0);
-  const totalAttempts = passPaperAttempts.length;
-
   // Weekly comparison
   const thisWeekMinutes = weeklyActivity.reduce((sum, d) => sum + d.minutes, 0);
   const thisWeekSessions = weeklyActivity.reduce((sum, d) => sum + d.sessions, 0);
@@ -70,15 +70,6 @@ export default function DashboardProgressPage() {
     [topicMastery],
   );
 
-  // Improvement detection — subjects with accuracy > 60% and attempts > 2
-  const improvingSubjects = useMemo(
-    () =>
-      subjectSummaries
-        .filter((s) => s.accuracy >= 60 && s.masteredCount > 0)
-        .sort((a, b) => b.accuracy - a.accuracy),
-    [subjectSummaries],
-  );
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -92,6 +83,28 @@ export default function DashboardProgressPage() {
           All data is derived from your quiz results, past paper attempts, and completed sessions.
         </p>
       </header>
+
+      {/* ═══════ Due Topics Alert ═══════ */}
+      {dueTopicsCount > 0 && (
+        <section className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 dark:border-rose-900 dark:bg-rose-950/40">
+          <Clock className="mt-0.5 h-5 w-5 flex-shrink-0 text-rose-600 dark:text-rose-400" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-rose-800 dark:text-rose-300">
+              {dueTopicsCount} topic{dueTopicsCount > 1 ? "s" : ""} overdue for review
+            </p>
+            <p className="mt-0.5 text-xs text-rose-700 dark:text-rose-400">
+              Knowledge decays without practice. Review these topics now to preserve mastery.
+            </p>
+          </div>
+          <Link
+            to="/dashboard/planner"
+            className="shrink-0 inline-flex items-center gap-1.5 rounded-xl border border-rose-300 bg-rose-100 px-3 py-2 text-xs font-semibold text-rose-800 hover:bg-rose-200 dark:border-rose-800 dark:bg-rose-900 dark:text-rose-300 dark:hover:bg-rose-800"
+          >
+            <RefreshCcw className="h-3.5 w-3.5" />
+            Review now
+          </Link>
+        </section>
+      )}
 
       {/* ═══════ Key Metrics Grid ═══════ */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -247,6 +260,7 @@ export default function DashboardProgressPage() {
                     <p className="text-sm font-semibold text-slate-900 dark:text-white">{s.label}</p>
                     <p className="text-xs text-slate-500">
                       {s.topicCount} topics | {s.masteredCount} mastered | {s.weakCount} weak | {s.untestedCount} untested
+                      {s.dueCount > 0 && <span className="text-rose-600 dark:text-rose-400"> | {s.dueCount} due</span>}
                     </p>
                   </div>
                   <span className={`text-xl font-semibold ${
@@ -291,8 +305,16 @@ export default function DashboardProgressPage() {
               <div key={`${t.subject}-${t.topic}`} className="rounded-2xl border border-amber-200 bg-white p-4 dark:border-amber-800 dark:bg-slate-900">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{t.topic}</p>
-                    <p className="text-xs text-slate-500">{subjectLabel(t.subject)} | {t.accuracy}% | {t.attempts} attempts</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">{t.topic}</p>
+                      {t.isDue && (
+                        <span className="inline-flex items-center gap-0.5 rounded-full bg-rose-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-rose-700 dark:bg-rose-900/60 dark:text-rose-400">
+                          <Clock className="h-2.5 w-2.5" />
+                          Due
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-500">{subjectLabel(t.subject)} | {t.accuracy}% mastery | {t.attempts} attempts</p>
                   </div>
                   <Link
                     to="/dashboard/planner"

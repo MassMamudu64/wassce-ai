@@ -1,97 +1,102 @@
 // ---------------------------------------------------------------------------
-// Adaptive Learning Engine — Core Types
+// Adaptive Learning Engine - Core Types
 // ---------------------------------------------------------------------------
 
-/**
- * Per-topic knowledge state tracked by the learning engine.
- * Mastery and confidence are 0–1 floats. Decay is applied automatically
- * based on time since last review.
- */
 export interface TopicLearningState {
   topic: string;
   subject: string;
 
-  /** Current mastery level (0–1). Affected by accuracy, recency, speed. */
+  // Current estimated mastery for the topic, in the range 0..1.
   mastery: number;
 
-  /** Confidence in the mastery estimate (0–1). Increases with more attempts. */
+  // Confidence in the mastery estimate, in the range 0..1.
   confidence: number;
 
-  /** ISO date-time of the last review. */
+  // ISO date-time of the last completed review.
   lastReviewedAt: string;
 
-  /** ISO date-time when the next review is scheduled. */
+  // ISO date-time of the next scheduled review.
   nextReviewAt: string;
 
-  /**
-   * Per-day decay rate (0–1 range, typically 0.02–0.08).
-   * Higher = topic is forgotten faster. Decreases as mastery stabilises.
-   */
+  // Per-day decay rate applied when the topic is not reviewed.
   decayRate: number;
 
-  /** Spaced-repetition interval in days. Doubles on correct, resets on wrong. */
-  intervalDays: number;
-
-  /** Consecutive correct reviews (streak resets on wrong answer). */
-  streak: number;
-
-  /** Lifetime attempt count for this topic. */
+  // Lifetime attempt count for the topic.
   attempts: number;
 
-  /** Lifetime correct answer count. */
+  // Lifetime correct count for the topic.
   correct: number;
 
-  /** Rolling average time per question in milliseconds. */
+  // Rolling average response time in milliseconds.
   averageTimeMs: number;
-}
 
-/**
- * Root learning state persisted per user.
- */
-export interface UserLearningState {
-  /** Map of "subject::topic" → TopicLearningState */
-  topics: Record<string, TopicLearningState>;
+  // Spaced-repetition interval in days. This is an engine helper field.
+  intervalDays: number;
 
-  /** Current consecutive-day study streak. */
+  // Consecutive successful review streak for the topic.
   streak: number;
 
-  /** ISO date of the last day the user completed at least one session. */
+  // ISO date-time of the last decay application so we do not double-apply decay.
+  lastDecayAppliedAt: string;
+}
+
+export interface UserLearningState {
+  topics: Record<string, TopicLearningState>;
+  streak: number;
   lastActiveDate: string;
 }
 
 // ---------------------------------------------------------------------------
-// Engine input / output types
+// Engine inputs / outputs
 // ---------------------------------------------------------------------------
 
-/** Result of answering a single question, fed into the engine. */
 export interface QuestionResult {
   topic: string;
   subject: string;
   correct: boolean;
-  /** Time taken to answer in milliseconds. */
   timeMs: number;
 }
 
-/** A batch of results from a completed session. */
+export interface TopicReviewResult {
+  topic: string;
+  subject: string;
+  correct: number;
+  total: number;
+  accuracy: number;
+  timeSpentMs: number;
+  averageTimeMs: number;
+  masteryBefore: number;
+  masteryAfter: number;
+  confidenceAfter: number;
+}
+
+export interface TopicSessionResult {
+  topic: string;
+  subject: string;
+  correct: number;
+  total: number;
+  accuracy: number;
+  timeSpentMs: number;
+}
+
 export interface SessionResults {
   sessionId: string;
   results: QuestionResult[];
-  completedAt: string; // ISO
+  completedAt: string;
+  source?: "planner" | "past_paper" | "quiz";
 }
 
-/** A single planned session produced by the engine. */
 export interface EngineSession {
   id: string;
   subject: string;
   topic: string;
-  /** Why this session was scheduled. */
   reason: "due" | "weak" | "new" | "revision";
   questionIds: string[];
   durationMinutes: number;
-  scheduledAt: string; // YYYY-MM-DD
+  scheduledAt: string;
+  priorityScore: number;
 }
 
-/** Insight with a mandatory actionable payload. */
 export interface EngineInsight {
   type: "warning" | "success" | "info";
   message: string;
@@ -99,17 +104,13 @@ export interface EngineInsight {
     type: "start_session" | "navigate";
     topic?: string;
     subject?: string;
+    sessionId?: string;
     to?: string;
   };
 }
 
-// ---------------------------------------------------------------------------
-// Session engine types
-// ---------------------------------------------------------------------------
-
 export type ActiveSessionPhase = "idle" | "active" | "paused" | "complete";
 
-/** Persistent state for an in-progress session. */
 export interface ActiveSessionState {
   sessionId: string;
   subject: string;
@@ -117,8 +118,8 @@ export interface ActiveSessionState {
   questionIds: string[];
   currentIndex: number;
   answers: Record<string, number | null>;
-  /** Per-question time spent in ms. */
   questionTimes: Record<string, number>;
-  startedAt: string; // ISO
+  startedAt: string;
+  lastInteractionAt: string;
   phase: ActiveSessionPhase;
 }

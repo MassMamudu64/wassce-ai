@@ -8,9 +8,15 @@ import {
   useState,
 } from "react";
 import { useLearningStore } from "../stores/learningStore";
-import { useTopicMastery, useSubjectSummaries, useOverallAccuracy } from "../stores/learningSelectors";
+import {
+  useDueTopicMastery,
+  useOverallAccuracy,
+  useRecommendedSession,
+  useSubjectSummaries,
+  useTopicMastery,
+} from "../stores/learningSelectors";
 import { subjectLabel } from "../utils/subjects";
-import type { StudyTopic, SuggestedTopic, RecentLearning, LearningTool } from "../utils/api";
+import type { LearningTool, RecentLearning, StudyTopic, SuggestedTopic } from "../utils/api";
 
 interface LearningContextValue {
   topics: StudyTopic[];
@@ -81,115 +87,129 @@ export const LearningProvider = ({ children }: { children: ReactNode }) => {
   const topicMastery = useTopicMastery();
   const subjectSummaries = useSubjectSummaries();
   const overallAccuracy = useOverallAccuracy();
+  const dueTopics = useDueTopicMastery(3);
+  const recommendedSession = useRecommendedSession();
   const [activeTool, setActiveTool] = useState("flashcards");
 
   const selectTool = useCallback((id: string) => setActiveTool(id), []);
 
-  // Derive StudyTopic[] from real mastery data (per subject)
   const topics = useMemo<StudyTopic[]>(() => {
-    return subjectSummaries.map((s) => {
+    return subjectSummaries.map((summary) => {
       const weakTopics = topicMastery
-        .filter((t) => t.subject === s.subject && t.status === "weak")
-        .sort((a, b) => a.accuracy - b.accuracy);
-      const focus = weakTopics.length > 0
-        ? weakTopics[0].topic
-        : s.untestedCount > 0
-          ? "Explore new topics"
-          : "Revision";
-      const nextStep = weakTopics.length > 0
-        ? `Practice ${weakTopics[0].topic} (${weakTopics[0].accuracy}%)`
-        : s.untestedCount > 0
-          ? `${s.untestedCount} untested topics`
-          : "Review past papers";
+        .filter((topic) => topic.subject === summary.subject && topic.status === "weak")
+        .sort((left, right) => left.accuracy - right.accuracy);
+
+      const focus =
+        weakTopics.length > 0
+          ? weakTopics[0].topic
+          : summary.untestedCount > 0
+            ? "Explore new topics"
+            : "Revision";
+
+      const nextStep =
+        weakTopics.length > 0
+          ? `Practice ${weakTopics[0].topic} (${weakTopics[0].accuracy}%)`
+          : summary.dueCount > 0
+            ? `${summary.dueCount} review topics due`
+            : summary.untestedCount > 0
+              ? `${summary.untestedCount} untested topics`
+              : "Review past papers";
 
       return {
-        name: s.label,
-        mastery: s.accuracy,
+        name: summary.label,
+        mastery: summary.accuracy,
         focus,
         nextStep,
       };
     });
   }, [subjectSummaries, topicMastery]);
 
-  // Derive suggested topics from weak/untested areas
   const suggestedTopics = useMemo<SuggestedTopic[]>(() => {
     const suggestions: SuggestedTopic[] = [];
 
-    // Weak topics get high priority
-    const weakByAccuracy = topicMastery
-      .filter((t) => t.status === "weak")
-      .sort((a, b) => a.accuracy - b.accuracy);
-    for (const t of weakByAccuracy.slice(0, 2)) {
+    if (recommendedSession) {
       suggestions.push({
-        title: `${t.topic} (${subjectLabel(t.subject)})`,
-        rationale: `Only ${t.accuracy}% accuracy after ${t.attempts} attempts`,
+        title: `${recommendedSession.topic} (${subjectLabel(recommendedSession.subject)})`,
+        rationale: `${recommendedSession.reason} session queued for today`,
         priority: "High",
       });
     }
 
-    // Untested topics get medium priority
-    const untested = topicMastery.filter((t) => t.status === "untested");
-    if (untested.length > 0) {
-      const sample = untested.slice(0, 2);
-      for (const t of sample) {
-        suggestions.push({
-          title: `${t.topic} (${subjectLabel(t.subject)})`,
-          rationale: "Not yet practiced — try a session to establish baseline",
-          priority: "Medium",
-        });
-      }
+    for (const topic of dueTopics) {
+      suggestions.push({
+        title: `${topic.topic} (${subjectLabel(topic.subject)})`,
+        rationale:
+          topic.daysUntilReview != null && topic.daysUntilReview <= 0
+            ? `Overdue review with ${topic.accuracy}% effective mastery`
+            : "Due for review soon",
+        priority: "High",
+      });
     }
 
-    // If no data, suggest getting started
+    const weakByAccuracy = topicMastery
+      .filter((topic) => topic.status === "weak")
+      .sort((left, right) => left.accuracy - right.accuracy);
+
+    for (const topic of weakByAccuracy.slice(0, 2)) {
+      suggestions.push({
+        title: `${topic.topic} (${subjectLabel(topic.subject)})`,
+        rationale: `Only ${topic.accuracy}% mastery after ${topic.attempts} attempts`,
+        priority: "Medium",
+      });
+    }
+
     if (suggestions.length === 0) {
       suggestions.push({
-        title: "Start with a quiz",
-        rationale: "Complete a quiz or past paper to unlock personalized suggestions",
+        title: "Start with a past paper",
+        rationale: "Complete a quiz or past paper to initialize the adaptive engine",
         priority: "Medium",
       });
     }
 
     return suggestions.slice(0, 4);
-  }, [topicMastery]);
+  }, [dueTopics, recommendedSession, topicMastery]);
 
-  // Derive recent learning from completed sessions
   const recentLearning = useMemo<RecentLearning[]>(() => {
     const today = new Date();
-    const sorted = [...studySessions]
-      .filter((s) => s.completed)
-      .sort((a, b) => b.date.localeCompare(a.date))
+    const completedStudySessions = [...studySessions]
+      .filter((session) => session.completed)
+      .sort((left, right) => right.date.localeCompare(left.date))
       .slice(0, 5);
 
-    // Also include completed planner sessions
-    const completedPlanner = [...plannerSessions]
-      .filter((s) => s.completed)
-      .sort((a, b) => b.scheduledAt.localeCompare(a.scheduledAt))
+    const completedPlannerSessions = [...plannerSessions]
+      .filter((session) => session.completed)
+      .sort((left, right) => right.scheduledAt.localeCompare(left.scheduledAt))
       .slice(0, 3);
 
     const items: RecentLearning[] = [];
 
-    for (const s of sorted) {
-      const d = new Date(s.date);
-      const diff = Math.floor((today.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
-      const when = diff === 0 ? "Today" : diff === 1 ? "Yesterday" : `${diff} days ago`;
+    for (const session of completedStudySessions) {
+      const date = new Date(session.date);
+      const dayDiff = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+      const when = dayDiff === 0 ? "Today" : dayDiff === 1 ? "Yesterday" : `${dayDiff} days ago`;
+
       items.push({
-        title: `${subjectLabel(s.subject)}${s.topic ? ` — ${s.topic}` : ""}`,
-        description: `${s.durationMinutes} min ${s.kind ?? "study"} session`,
+        title: `${subjectLabel(session.subject)}${session.topic ? ` - ${session.topic}` : ""}`,
+        description: `${session.durationMinutes} min ${session.kind ?? "study"} session`,
         when,
         status: "Completed",
       });
     }
 
-    for (const s of completedPlanner) {
+    for (const session of completedPlannerSessions) {
       if (items.length >= 5) break;
-      const d = new Date(s.scheduledAt);
-      const diff = Math.floor((today.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
-      const when = diff === 0 ? "Today" : diff === 1 ? "Yesterday" : `${diff} days ago`;
+      const date = new Date(session.scheduledAt);
+      const dayDiff = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+      const when = dayDiff === 0 ? "Today" : dayDiff === 1 ? "Yesterday" : `${dayDiff} days ago`;
+
       items.push({
-        title: `${subjectLabel(s.subject)} — ${s.topic}`,
-        description: s.accuracy != null ? `Score: ${s.accuracy}%` : `${s.durationMinutes} min session`,
+        title: `${subjectLabel(session.subject)} - ${session.topic}`,
+        description:
+          session.accuracy != null
+            ? `Score: ${session.accuracy}%`
+            : `${session.durationMinutes} min session`,
         when,
-        status: s.accuracy != null && s.accuracy >= 70 ? "Mastered" : "Completed",
+        status: session.accuracy != null && session.accuracy >= 70 ? "Mastered" : "Completed",
       });
     }
 
@@ -203,7 +223,7 @@ export const LearningProvider = ({ children }: { children: ReactNode }) => {
     }
 
     return items.slice(0, 5);
-  }, [studySessions, plannerSessions]);
+  }, [plannerSessions, studySessions]);
 
   const completionRate = useMemo(() => overallAccuracy ?? 0, [overallAccuracy]);
 

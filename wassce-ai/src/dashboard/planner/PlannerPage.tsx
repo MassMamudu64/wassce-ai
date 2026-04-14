@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import {
   AlertTriangle,
   Brain,
@@ -7,384 +7,244 @@ import {
   Sparkles,
   Target,
 } from "lucide-react";
-import type {
-  InteractivePaper,
-  PlannerSession,
-} from "../../core/types/passPaper";
-import type { EngineSession } from "../../core/types/learning";
-import { generateDailyPlan, getDueTopics, getDecayedMastery } from "../../core/learningEngine";
-import { useUI } from "../../contexts/UIContext";
+import type { PlannerSession } from "../../core/types/passPaper";
 import { useLearningStore } from "../../stores/learningStore";
+import { useDueTopicMastery, useRecommendedSession } from "../../stores/learningSelectors";
 import { getQuestionsByIds } from "../pass-papers/seedData";
-import { subjectLabel } from "../../utils/subjects";
 import PaperViewer from "../pass-papers/PaperViewer";
-import type { SessionResult } from "../pass-papers/PaperViewer";
 import DailyPlanCard from "./DailyPlanCard";
 import SessionCard from "./SessionCard";
 
-const today = () => new Date().toISOString().slice(0, 10);
+const todayISO = () => new Date().toISOString().slice(0, 10);
 
-/** Convert an EngineSession to the existing PlannerSession shape. */
-function toPlannerSession(es: EngineSession): PlannerSession {
-  return {
-    id: es.id,
-    subject: es.subject,
-    topic: es.topic,
-    type: "past_paper",
-    year: 0,
-    paper: 0,
-    questionIds: es.questionIds,
-    durationMinutes: es.durationMinutes,
-    scheduledAt: es.scheduledAt,
-    completed: false,
-  };
-}
-
-const REASON_LABELS: Record<EngineSession["reason"], { label: string; color: string }> = {
-  due: { label: "Due for review", color: "text-rose-600 dark:text-rose-400" },
-  weak: { label: "Weak — needs practice", color: "text-amber-600 dark:text-amber-400" },
+const reasonLabels: Record<PlannerSession["reason"], { label: string; color: string }> = {
+  due: { label: "Due review", color: "text-rose-600 dark:text-rose-400" },
+  weak: { label: "Weak topic", color: "text-amber-600 dark:text-amber-400" },
   new: { label: "New topic", color: "text-blue-600 dark:text-blue-400" },
   revision: { label: "Revision", color: "text-emerald-600 dark:text-emerald-400" },
 };
 
 export default function PlannerPage() {
-  const { theme } = useUI();
-  const isDark = theme === "dark";
+  const studentProfile = useLearningStore((state) => state.studentProfile);
+  const plannerSessions = useLearningStore((state) => state.plannerSessions);
+  const activeSession = useLearningStore((state) => state.activeSession);
+  const ensureDailyPlan = useLearningStore((state) => state.ensureDailyPlan);
+  const regenerateDailyPlan = useLearningStore((state) => state.regenerateDailyPlan);
+  const startPlannerSession = useLearningStore((state) => state.startPlannerSession);
+  const clearActiveSession = useLearningStore((state) => state.clearActiveSession);
 
-  const {
-    studentProfile,
-    studyStats,
-    plannerSessions,
-    engineState,
-    setPlannerSessions,
-    updatePlannerSession,
-    processEngineResults,
-  } = useLearningStore();
+  const today = todayISO();
+  const dueTopics = useDueTopicMastery(3);
+  const recommendedSession = useRecommendedSession();
 
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
-  // Track the reason for each generated session for display
-  const [sessionReasons, setSessionReasons] = useState<Record<string, EngineSession["reason"]>>({});
+  useEffect(() => {
+    ensureDailyPlan(today);
+  }, [ensureDailyPlan, today]);
 
-  const subjects = studentProfile?.subjects ?? [];
-  const todayStr = today();
-
-  // Sessions for today
-  const todaySessions = useMemo(
-    () => plannerSessions.filter((s) => s.scheduledAt === todayStr),
-    [plannerSessions, todayStr],
+  const todaysSessions = useMemo(
+    () => plannerSessions.filter((session) => session.scheduledAt === today),
+    [plannerSessions, today],
   );
 
-  const allCompleted =
-    todaySessions.length > 0 && todaySessions.every((s) => s.completed);
-
-  // Due topics from the engine
-  const dueTopics = useMemo(
-    () => getDueTopics(engineState),
-    [engineState],
-  );
-  const activeDueCount = dueTopics.filter((d) =>
-    subjects.includes(d.state.subject),
-  ).length;
-
-  // ── Generate plan using learning engine ──
-  const handleGenerate = useCallback(() => {
-    if (subjects.length === 0) return;
-    const completedIds = plannerSessions
-      .filter((s) => s.completed)
-      .flatMap((s) => s.questionIds);
-
-    const engineSessions = generateDailyPlan({
-      userState: engineState,
-      subjects,
-      completedQuestionIds: completedIds,
-      date: todayStr,
-    });
-
-    // Track reasons
-    const reasons: Record<string, EngineSession["reason"]> = {};
-    for (const es of engineSessions) {
-      reasons[es.id] = es.reason;
-    }
-    setSessionReasons((prev) => ({ ...prev, ...reasons }));
-
-    // Keep completed sessions, replace pending ones for today
-    const kept = plannerSessions.filter(
-      (s) => s.scheduledAt !== todayStr || s.completed,
-    );
-    setPlannerSessions([
-      ...kept,
-      ...engineSessions.map(toPlannerSession),
-    ]);
-  }, [subjects, engineState, plannerSessions, setPlannerSessions, todayStr]);
-
-  // ── Launch a session ──
-  const activeSession = useMemo(
-    () => plannerSessions.find((s) => s.id === activeSessionId) ?? null,
-    [plannerSessions, activeSessionId],
+  const activePlannerSession = useMemo(
+    () =>
+      activeSession
+        ? plannerSessions.find((session) => session.id === activeSession.sessionId) ?? null
+        : null,
+    [activeSession, plannerSessions],
   );
 
-  const activePaper = useMemo<InteractivePaper | null>(() => {
-    if (!activeSession) return null;
-    const questions = getQuestionsByIds(activeSession.questionIds);
-    if (questions.length === 0) return null;
-    return {
-      id: `planner-${activeSession.id}`,
-      subject: activeSession.subject,
-      year: activeSession.year,
-      paper: activeSession.paper,
-      title: `${activeSession.topic} — Study Session`,
-      durationMinutes: activeSession.durationMinutes,
-      questions,
-    };
-  }, [activeSession]);
+  const activeQuestions = useMemo(
+    () => (activePlannerSession ? getQuestionsByIds(activePlannerSession.questionIds) : []),
+    [activePlannerSession],
+  );
 
-  const handleStartSession = useCallback((session: PlannerSession) => {
-    setActiveSessionId(session.id);
-  }, []);
+  const pendingSessions = todaysSessions.filter((session) => !session.completed);
+  const completedSessions = todaysSessions.filter((session) => session.completed);
+  const allCompleted = todaysSessions.length > 0 && pendingSessions.length === 0;
+  const recommendedPlannerSession = useMemo(
+    () =>
+      recommendedSession
+        ? todaysSessions.find((session) => session.id === recommendedSession.id) ?? null
+        : null,
+    [recommendedSession, todaysSessions],
+  );
 
-  const handleSessionComplete = useCallback(
-    (result: SessionResult) => {
-      if (!activeSessionId) return;
-      updatePlannerSession(activeSessionId, {
-        completed: true,
-        score: result.score,
-        accuracy: result.accuracy,
-      });
-      // Note: usePaperAttempt already calls processEngineResults,
-      // so the engine state is updated automatically.
+  const handleStartSession = useCallback(
+    (session: PlannerSession) => {
+      startPlannerSession(session.id);
     },
-    [activeSessionId, updatePlannerSession],
+    [startPlannerSession],
   );
 
-  const handleExitSession = useCallback(() => {
-    setActiveSessionId(null);
-  }, []);
+  const handleRegenerate = useCallback(() => {
+    regenerateDailyPlan(today);
+  }, [regenerateDailyPlan, today]);
 
-  // ── Active session render ──
-  if (activeSessionId && activePaper) {
+  if (!studentProfile || studentProfile.subjects.length === 0) {
     return (
-      <PaperViewer
-        initialPaper={activePaper}
-        initialMode="practice"
-        onSessionComplete={handleSessionComplete}
-        onExit={handleExitSession}
-      />
-    );
-  }
-
-  // ── No profile ──
-  if (!studentProfile || subjects.length === 0) {
-    return (
-      <div
-        className={`rounded-2xl border p-8 text-center ${
-          isDark ? "border-slate-700 bg-slate-800" : "border-slate-200 bg-white"
-        }`}
-      >
-        <p className={`text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+      <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-900">
+        <p className="text-sm text-slate-600 dark:text-slate-400">
           Set up your student profile first to unlock the adaptive study planner.
         </p>
       </div>
     );
   }
 
-  // ── Empty plan ──
-  if (todaySessions.length === 0) {
+  if (activeSession?.phase === "active" && activePlannerSession && activeQuestions.length > 0) {
+    return (
+      <PaperViewer
+        sessionId={activePlannerSession.id}
+        sessionSubject={activePlannerSession.subject}
+        sessionTopic={activePlannerSession.topic}
+        sessionTitle={`${activePlannerSession.topic} - ${reasonLabels[activePlannerSession.reason].label}`}
+        sessionDurationMinutes={activePlannerSession.durationMinutes}
+        questions={activeQuestions}
+        onSessionComplete={() => {}}
+        onExit={() => {}}
+      />
+    );
+  }
+
+  if (todaysSessions.length === 0) {
     return (
       <div className="space-y-6">
-        {/* Due topics alert */}
-        {activeDueCount > 0 && (
-          <div
-            className={`flex items-start gap-3 rounded-2xl border p-4 ${
-              isDark
-                ? "border-rose-800 bg-rose-950/40"
-                : "border-rose-200 bg-rose-50"
-            }`}
-          >
-            <Clock
-              className={`mt-0.5 h-5 w-5 flex-shrink-0 ${
-                isDark ? "text-rose-400" : "text-rose-600"
-              }`}
-            />
+        {dueTopics.length > 0 && (
+          <div className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 dark:border-rose-900 dark:bg-rose-950/40">
+            <Clock className="mt-0.5 h-5 w-5 flex-shrink-0 text-rose-600 dark:text-rose-400" />
             <div>
-              <p
-                className={`text-sm font-semibold ${
-                  isDark ? "text-rose-300" : "text-rose-800"
-                }`}
-              >
-                {activeDueCount} topic{activeDueCount > 1 ? "s" : ""} overdue for review
+              <p className="text-sm font-semibold text-rose-800 dark:text-rose-300">
+                {dueTopics.length} due topic{dueTopics.length > 1 ? "s" : ""} need review today
               </p>
-              <p
-                className={`mt-0.5 text-xs ${
-                  isDark ? "text-rose-400" : "text-rose-700"
-                }`}
-              >
-                Mastery is decaying. Generate a plan to review these topics before they fade.
+              <p className="mt-0.5 text-xs text-rose-700 dark:text-rose-400">
+                {dueTopics.map((topic) => topic.topic).join(", ")}
               </p>
             </div>
           </div>
         )}
 
-        <div
-          className={`rounded-2xl border border-dashed p-10 text-center ${
-            isDark ? "border-slate-700 bg-slate-800/50" : "border-slate-200 bg-slate-50"
-          }`}
-        >
-          <Brain
-            className={`mx-auto h-10 w-10 ${
-              isDark ? "text-blue-400" : "text-blue-600"
-            }`}
-          />
-          <h3
-            className={`mt-4 text-lg font-semibold ${
-              isDark ? "text-white" : "text-slate-900"
-            }`}
-          >
-            Adaptive study plan
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-10 text-center dark:border-slate-700 dark:bg-slate-800/50">
+          <Brain className="mx-auto h-10 w-10 text-blue-600 dark:text-blue-400" />
+          <h3 className="mt-4 text-lg font-semibold text-slate-900 dark:text-white">
+            Adaptive study plan ready
           </h3>
-          <p
-            className={`mt-2 text-sm ${
-              isDark ? "text-slate-400" : "text-slate-600"
-            }`}
-          >
-            The learning engine builds your plan from due reviews, weak topics,
-            and new material — using spaced repetition and mastery decay.
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+            The engine will prioritize due reviews, weak topics, and only then add new material.
           </p>
           <button
             type="button"
-            onClick={handleGenerate}
+            onClick={handleRegenerate}
             className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
           >
             <Sparkles className="h-4 w-4" />
-            Generate today's plan
+            Build today&apos;s plan
           </button>
         </div>
       </div>
     );
   }
 
-  // ── Active plan ──
-  const pendingSessions = todaySessions.filter((s) => !s.completed);
-  const completedSessions = todaySessions.filter((s) => s.completed);
-  const weakResults = completedSessions.filter(
-    (s) => s.accuracy != null && s.accuracy < 60,
-  );
-
   return (
     <div className="space-y-6">
-      {/* Daily overview */}
-      <DailyPlanCard sessions={todaySessions} date={todayStr} />
+      <DailyPlanCard sessions={todaysSessions} date={today} />
 
-      {/* Due topics alert */}
-      {activeDueCount > 0 && pendingSessions.length === 0 && (
-        <div
-          className={`flex items-start gap-3 rounded-2xl border p-4 ${
-            isDark
-              ? "border-rose-800 bg-rose-950/40"
-              : "border-rose-200 bg-rose-50"
-          }`}
-        >
-          <Clock
-            className={`mt-0.5 h-5 w-5 flex-shrink-0 ${
-              isDark ? "text-rose-400" : "text-rose-600"
-            }`}
-          />
-          <div>
-            <p
-              className={`text-sm font-semibold ${
-                isDark ? "text-rose-300" : "text-rose-800"
-              }`}
-            >
-              {activeDueCount} additional topic{activeDueCount > 1 ? "s" : ""} still overdue
-            </p>
+      {recommendedSession && (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-900 dark:bg-emerald-950/30">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-700 dark:text-emerald-400">
+                Recommended next session
+              </p>
+              <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
+                {recommendedSession.topic}
+              </p>
+              <p className="text-xs text-slate-500">
+                {reasonLabels[recommendedSession.reason].label} | {recommendedSession.questionCount} questions | {recommendedSession.durationMinutes} min
+              </p>
+            </div>
             <button
               type="button"
-              onClick={handleGenerate}
-              className={`mt-2 inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
-                isDark
-                  ? "border-rose-700 bg-rose-900 text-rose-300 hover:bg-rose-800"
-                  : "border-rose-300 bg-rose-100 text-rose-800 hover:bg-rose-200"
-              }`}
+              onClick={() => {
+                if (!recommendedPlannerSession) return;
+                handleStartSession(recommendedPlannerSession);
+              }}
+              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
             >
-              <RefreshCcw className="h-3 w-3" />
-              Add review sessions
+              <Target className="h-4 w-4" />
+              Start now
             </button>
           </div>
         </div>
       )}
 
-      {/* Weak topic alert */}
-      {weakResults.length > 0 && (
-        <div
-          className={`flex items-start gap-3 rounded-2xl border p-4 ${
-            isDark
-              ? "border-amber-800 bg-amber-950/40"
-              : "border-amber-200 bg-amber-50"
-          }`}
-        >
-          <AlertTriangle
-            className={`mt-0.5 h-5 w-5 flex-shrink-0 ${
-              isDark ? "text-amber-400" : "text-amber-600"
-            }`}
-          />
-          <div>
-            <p
-              className={`text-sm font-semibold ${
-                isDark ? "text-amber-300" : "text-amber-800"
-              }`}
-            >
-              Weak topics detected
-            </p>
-            <p
-              className={`mt-0.5 text-xs ${
-                isDark ? "text-amber-400" : "text-amber-700"
-              }`}
-            >
-              {weakResults.map((s) => s.topic).join(", ")} scored below 60%.
-              The engine will schedule follow-up reviews.
-            </p>
-            <button
-              type="button"
-              onClick={handleGenerate}
-              className={`mt-2 inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
-                isDark
-                  ? "border-amber-700 bg-amber-900 text-amber-300 hover:bg-amber-800"
-                  : "border-amber-300 bg-amber-100 text-amber-800 hover:bg-amber-200"
-              }`}
-            >
-              <RefreshCcw className="h-3 w-3" />
-              Regenerate plan
-            </button>
+      {dueTopics.length > 0 && pendingSessions.length > 0 && (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 dark:border-rose-900 dark:bg-rose-950/40">
+          <div className="flex items-start gap-3">
+            <Clock className="mt-0.5 h-5 w-5 flex-shrink-0 text-rose-600 dark:text-rose-400" />
+            <div>
+              <p className="text-sm font-semibold text-rose-800 dark:text-rose-300">
+                Review path is locked on due topics first
+              </p>
+              <p className="mt-0.5 text-xs text-rose-700 dark:text-rose-400">
+                {dueTopics.map((topic) => topic.topic).join(", ")}
+              </p>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Pending sessions */}
+      {activeSession?.phase === "paused" && activePlannerSession && (
+        <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/30">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">
+                Resume saved session
+              </p>
+              <p className="text-xs text-blue-700 dark:text-blue-400">
+                {activePlannerSession.topic} is ready where you left off.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => handleStartSession(activePlannerSession)}
+                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+              >
+                Resume
+              </button>
+              <button
+                type="button"
+                onClick={clearActiveSession}
+                className="rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-300"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {pendingSessions.length > 0 && (
         <section>
-          <h3
-            className={`mb-3 text-xs font-semibold uppercase tracking-[0.3em] ${
-              isDark ? "text-slate-400" : "text-slate-500"
-            }`}
-          >
+          <h3 className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
             Up next
           </h3>
           <div className="space-y-3">
             {pendingSessions.map((session) => {
-              const reason = sessionReasons[session.id];
-              const reasonInfo = reason ? REASON_LABELS[reason] : null;
+              const reason = reasonLabels[session.reason];
+              const resumable = activeSession?.phase === "paused" && activeSession.sessionId === session.id;
               return (
                 <div key={session.id} className="space-y-1">
-                  {reasonInfo && (
-                    <div className="flex items-center gap-1.5 px-1">
-                      <Target className={`h-3 w-3 ${reasonInfo.color}`} />
-                      <span className={`text-[10px] font-semibold uppercase tracking-wide ${reasonInfo.color}`}>
-                        {reasonInfo.label}
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-1.5 px-1">
+                    <Target className={`h-3 w-3 ${reason.color}`} />
+                    <span className={`text-[10px] font-semibold uppercase tracking-wide ${reason.color}`}>
+                      {reason.label}
+                    </span>
+                  </div>
                   <SessionCard
                     session={session}
                     onStart={handleStartSession}
+                    resumable={Boolean(resumable)}
                   />
                 </div>
               );
@@ -393,52 +253,30 @@ export default function PlannerPage() {
         </section>
       )}
 
-      {/* Completed sessions */}
       {completedSessions.length > 0 && (
         <section>
-          <h3
-            className={`mb-3 text-xs font-semibold uppercase tracking-[0.3em] ${
-              isDark ? "text-slate-400" : "text-slate-500"
-            }`}
-          >
+          <h3 className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
             Completed
           </h3>
           <div className="space-y-3">
             {completedSessions.map((session) => (
-              <SessionCard
-                key={session.id}
-                session={session}
-                onStart={handleStartSession}
-              />
+              <SessionCard key={session.id} session={session} onStart={handleStartSession} />
             ))}
           </div>
         </section>
       )}
 
-      {/* All done */}
       {allCompleted && (
-        <div
-          className={`rounded-2xl border border-dashed p-6 text-center ${
-            isDark ? "border-slate-700" : "border-slate-200"
-          }`}
-        >
-          <p
-            className={`text-sm font-semibold ${
-              isDark ? "text-emerald-400" : "text-emerald-700"
-            }`}
-          >
-            All sessions complete for today!
+        <div className="rounded-2xl border border-dashed border-slate-200 p-6 text-center dark:border-slate-700">
+          <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+            Today&apos;s required reviews are complete.
           </p>
-          <p
-            className={`mt-1 text-xs ${
-              isDark ? "text-slate-500" : "text-slate-500"
-            }`}
-          >
-            The engine has updated your mastery. Generate more sessions if you want extra practice.
+          <p className="mt-1 text-xs text-slate-500">
+            Regenerate the plan if you want extra revision or fresh topics.
           </p>
           <button
             type="button"
-            onClick={handleGenerate}
+            onClick={handleRegenerate}
             className="mt-4 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
           >
             <RefreshCcw className="h-4 w-4" />
@@ -447,21 +285,32 @@ export default function PlannerPage() {
         </div>
       )}
 
-      {/* Regenerate */}
       {!allCompleted && (
         <div className="flex justify-end">
           <button
             type="button"
-            onClick={handleGenerate}
-            className={`inline-flex items-center gap-1.5 rounded-xl border px-4 py-2 text-xs font-semibold transition ${
-              isDark
-                ? "border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700"
-                : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-            }`}
+            onClick={handleRegenerate}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700"
           >
             <RefreshCcw className="h-3.5 w-3.5" />
-            Regenerate plan
+            Rebuild plan
           </button>
+        </div>
+      )}
+
+      {pendingSessions.length === 0 && completedSessions.length === 0 && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+            <div>
+              <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                No sessions could be generated yet
+              </p>
+              <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-400">
+                Try a past paper or quiz to seed the engine with real mastery data.
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </div>

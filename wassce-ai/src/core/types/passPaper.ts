@@ -143,6 +143,7 @@ export interface PlannerSession {
   subject: string;
   topic: string;
   type: "past_paper";
+  reason: "due" | "weak" | "new" | "revision";
   year: number;
   paper: number;
   questionIds: string[];
@@ -151,4 +152,5 @@ export interface PlannerSession {
   completed: boolean;
   score?: number;
   accuracy?: number;
+  priorityScore?: number;
 }

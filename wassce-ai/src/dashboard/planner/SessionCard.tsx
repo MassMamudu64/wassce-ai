@@ -16,9 +16,10 @@ const subjectLabels: Record<string, string> = {
 interface Props {
   session: PlannerSession;
   onStart: (session: PlannerSession) => void;
+  resumable?: boolean;
 }
 
-export default function SessionCard({ session, onStart }: Props) {
+export default function SessionCard({ session, onStart, resumable = false }: Props) {
   const { theme } = useUI();
   const isDark = theme === "dark";
 
@@ -125,7 +126,7 @@ export default function SessionCard({ session, onStart }: Props) {
           className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
         >
           <Play className="h-4 w-4" />
-          Start
+          {resumable ? "Resume" : "Start"}
         </button>
       </div>
     </div>

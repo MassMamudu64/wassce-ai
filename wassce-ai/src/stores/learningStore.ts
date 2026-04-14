@@ -1,73 +1,138 @@
-import { create } from 'zustand'
-import type { UserProgress, StudyStat, DiagnosticResult, StudyPlan } from '../types/domain'
-import type { PassPaperAttempt, PassPaperStats, PlannerSession } from '../core/types/passPaper'
-import type { StudentProfile, StudySession, StudyPlan as ProfileStudyPlan } from '../types/profile'
-import type { UserLearningState, ActiveSessionState, SessionResults } from '../core/types/learning'
-import { emptyUserState, applyDecay, processSessionResults } from '../core/learningEngine'
-import { upsertLearningState } from '../utils/supabaseData'
+import { create } from "zustand";
+import type { DiagnosticResult, StudyPlan, StudyStat, UserProgress } from "../types/domain";
+import type { StudentProfile, StudyPlan as ProfileStudyPlan, StudySession } from "../types/profile";
+import type { PassPaperAttempt, PassPaperStats, PlannerSession } from "../core/types/passPaper";
+import type {
+  ActiveSessionState,
+  SessionResults,
+  TopicSessionResult,
+  UserLearningState,
+} from "../core/types/learning";
+import {
+  applyDecay,
+  emptyUserState,
+  generateDailyPlan,
+  processSessionResults,
+} from "../core/learningEngine";
+import {
+  completeSession as completeEngineSession,
+  goToQuestion,
+  pauseSession,
+  recordQuestionTime,
+  resumeSession,
+  startSession,
+  submitAnswer,
+} from "../core/sessionEngine";
+import { getQuestionsByIds } from "../dashboard/pass-papers/seedData";
+import { upsertLearningState } from "../utils/supabaseData";
 
 // ---------------------------------------------------------------------------
 // State shape
 // ---------------------------------------------------------------------------
 
 export type LearningStateData = {
-  studentProfile: StudentProfile | null
-  userProgress: UserProgress | null
-  studyStats: StudyStat[]
-  diagnosticResult: DiagnosticResult | null
-  studyPlan: StudyPlan | null
-  isFirstTime: boolean
-  passPaperAttempts: PassPaperAttempt[]
-  passPaperStats: PassPaperStats[]
-  studySessions: StudySession[]
-  studyPlanProfile: ProfileStudyPlan | null
-  plannerSessions: PlannerSession[]
-  /** Adaptive learning engine state — mastery, decay, spaced repetition. */
-  engineState: UserLearningState
-  /** Currently active study session (null when idle). */
-  activeSession: ActiveSessionState | null
-}
+  studentProfile: StudentProfile | null;
+  userProgress: UserProgress | null;
+  studyStats: StudyStat[];
+  diagnosticResult: DiagnosticResult | null;
+  studyPlan: StudyPlan | null;
+  isFirstTime: boolean;
+  passPaperAttempts: PassPaperAttempt[];
+  passPaperStats: PassPaperStats[];
+  studySessions: StudySession[];
+  studyPlanProfile: ProfileStudyPlan | null;
+  plannerSessions: PlannerSession[];
+  engineState: UserLearningState;
+  activeSession: ActiveSessionState | null;
+};
 
 interface LearningState extends LearningStateData {
-  userRef: string | null
+  userRef: string | null;
 
-  // ── Existing actions ──
-  setUserRef: (userRef: string | null) => void
-  hydrate: (data: Partial<LearningStateData> | null) => void
-  setStudentProfile: (profile: StudentProfile | null) => void
-  setUserProgress: (progress: UserProgress) => void
-  updateStudyStat: (stat: StudyStat) => void
-  setDiagnosticResult: (result: DiagnosticResult) => void
-  setStudyPlan: (plan: StudyPlan) => void
-  completeFirstTime: () => void
-  addPassPaperAttempt: (attempt: PassPaperAttempt) => void
-  updatePassPaperStats: (stats: PassPaperStats) => void
-  addStudySession: (session: StudySession) => void
-  updateStudySession: (id: string, updates: Partial<StudySession>) => void
-  markMissedSessions: () => void
-  setStudyPlanProfile: (plan: ProfileStudyPlan) => void
-  setPlannerSessions: (sessions: PlannerSession[]) => void
-  updatePlannerSession: (id: string, updates: Partial<PlannerSession>) => void
-  clearPlannerSessions: () => void
-  resetProgress: () => void
+  setUserRef: (userRef: string | null) => void;
+  hydrate: (data: Partial<LearningStateData> | null) => void;
+  setStudentProfile: (profile: StudentProfile | null) => void;
+  setUserProgress: (progress: UserProgress) => void;
+  updateStudyStat: (stat: StudyStat) => void;
+  setDiagnosticResult: (result: DiagnosticResult) => void;
+  setStudyPlan: (plan: StudyPlan) => void;
+  completeFirstTime: () => void;
+  addPassPaperAttempt: (attempt: PassPaperAttempt) => void;
+  updatePassPaperStats: (stats: PassPaperStats) => void;
+  addStudySession: (session: StudySession) => void;
+  updateStudySession: (id: string, updates: Partial<StudySession>) => void;
+  markMissedSessions: () => void;
+  setStudyPlanProfile: (plan: ProfileStudyPlan) => void;
+  setPlannerSessions: (sessions: PlannerSession[]) => void;
+  updatePlannerSession: (id: string, updates: Partial<PlannerSession>) => void;
+  clearPlannerSessions: () => void;
+  resetProgress: () => void;
 
-  // ── Engine actions ──
-  /** Apply time-based decay to all topics. Call on app load. */
-  applyEngineDecay: () => void
-  /** Process completed session results through the learning engine. */
-  processEngineResults: (results: SessionResults) => void
-  /** Directly set the engine state (used by hydrate). */
-  setEngineState: (state: UserLearningState) => void
-  /** Set / clear the active session. */
-  setActiveSession: (session: ActiveSessionState | null) => void
+  applyEngineDecay: () => void;
+  processEngineResults: (results: SessionResults) => void;
+  setEngineState: (state: UserLearningState) => void;
+  setActiveSession: (session: ActiveSessionState | null) => void;
+
+  ensureDailyPlan: (date?: string) => void;
+  regenerateDailyPlan: (date?: string) => void;
+  startPlannerSession: (sessionId: string) => void;
+  resumeActiveSession: () => void;
+  pauseActiveSession: () => void;
+  recordActiveQuestionTime: (questionId: string, timeSpentMs: number) => void;
+  submitActiveAnswer: (questionId: string, selectedIndex: number, timeSpentMs?: number) => void;
+  goToActiveQuestion: (index: number) => void;
+  completeActiveSession: () => {
+    sessionId: string;
+    score: number;
+    accuracy: number;
+    topicResults: TopicSessionResult[];
+  } | null;
+  clearActiveSession: () => void;
 }
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
+const todayISO = () => new Date().toISOString().slice(0, 10);
+
 const serialize = (data: LearningStateData) =>
-  JSON.parse(JSON.stringify(data)) as LearningStateData
+  JSON.parse(JSON.stringify(data)) as LearningStateData;
+
+const normalizePlannerSession = (session: PlannerSession): PlannerSession => ({
+  ...session,
+  reason: session.reason ?? "revision",
+  priorityScore: session.priorityScore ?? 0,
+});
+
+const normalizeEngineState = (engineState: UserLearningState | null | undefined): UserLearningState => {
+  const base = engineState ?? emptyUserState();
+  const topics: UserLearningState["topics"] = {};
+
+  for (const [key, topic] of Object.entries(base.topics ?? {})) {
+    const timestamp = topic.lastReviewedAt || new Date().toISOString();
+    topics[key] = {
+      ...topic,
+      attempts: topic.attempts ?? 0,
+      correct: topic.correct ?? 0,
+      mastery: topic.mastery ?? 0,
+      confidence: topic.confidence ?? 0,
+      averageTimeMs: topic.averageTimeMs ?? 60_000,
+      decayRate: topic.decayRate ?? 0.05,
+      intervalDays: topic.intervalDays ?? 1,
+      streak: topic.streak ?? 0,
+      lastReviewedAt: timestamp,
+      nextReviewAt: topic.nextReviewAt ?? timestamp,
+      lastDecayAppliedAt: topic.lastDecayAppliedAt ?? timestamp,
+    };
+  }
+
+  return {
+    topics,
+    streak: base.streak ?? 0,
+    lastActiveDate: base.lastActiveDate ?? "",
+  };
+};
 
 const selectState = (state: LearningState): LearningStateData => ({
   studentProfile: state.studentProfile,
@@ -83,12 +148,48 @@ const selectState = (state: LearningState): LearningStateData => ({
   plannerSessions: state.plannerSessions,
   engineState: state.engineState,
   activeSession: state.activeSession,
-})
+});
 
 const persistState = (userRef: string | null, data: LearningStateData) => {
-  if (!userRef) return
-  void upsertLearningState(userRef, serialize(data)).catch(() => {})
-}
+  if (!userRef) return;
+  void upsertLearningState(userRef, serialize(data)).catch(() => {});
+};
+
+const buildPlannerSessions = (
+  profile: StudentProfile | null,
+  engineState: UserLearningState,
+  existingSessions: PlannerSession[],
+  date: string,
+): PlannerSession[] => {
+  if (!profile || profile.subjects.length === 0) return existingSessions;
+
+  const completedQuestionIds = existingSessions
+    .filter((session) => session.completed)
+    .flatMap((session) => session.questionIds);
+
+  return generateDailyPlan({
+    userState: engineState,
+    subjects: profile.subjects,
+    completedQuestionIds,
+    date,
+    dailyCapacityMinutes: profile.dailyStudyGoalMinutes,
+  }).map((session) =>
+    normalizePlannerSession({
+      id: session.id,
+      subject: session.subject,
+      topic: session.topic,
+      type: "past_paper",
+      reason: session.reason,
+      year: 0,
+      paper: 0,
+      questionIds: session.questionIds,
+      durationMinutes: session.durationMinutes,
+      scheduledAt: session.scheduledAt,
+      completed: false,
+      priorityScore: session.priorityScore,
+    }),
+  );
+};
 
 // ---------------------------------------------------------------------------
 // Initial state
@@ -108,7 +209,7 @@ const initialState: LearningStateData = {
   plannerSessions: [],
   engineState: emptyUserState(),
   activeSession: null,
-}
+};
 
 // ---------------------------------------------------------------------------
 // Store
@@ -121,175 +222,406 @@ export const useLearningStore = create<LearningState>()((set, get) => ({
   setUserRef: (userRef) => set({ userRef }),
 
   hydrate: (data) => {
-    const next = { ...initialState, ...(data ?? {}) }
-    // Ensure engineState is always a valid object
-    if (!next.engineState || !next.engineState.topics) {
-      next.engineState = emptyUserState()
-    }
-    set({ ...next })
+    const next = { ...initialState, ...(data ?? {}) };
+    next.engineState = applyDecay(normalizeEngineState(next.engineState));
+    next.plannerSessions = (next.plannerSessions ?? []).map(normalizePlannerSession);
+    set(next);
   },
 
-  setStudentProfile: (profile) => {
-    set({ studentProfile: profile })
-    persistState(get().userRef, selectState(get()))
+  setStudentProfile: (studentProfile) => {
+    set({ studentProfile });
+    get().ensureDailyPlan();
+    persistState(get().userRef, selectState(get()));
   },
 
-  setUserProgress: (progress) => {
-    set({ userProgress: progress })
-    persistState(get().userRef, selectState(get()))
+  setUserProgress: (userProgress) => {
+    set({ userProgress });
+    persistState(get().userRef, selectState(get()));
   },
 
   updateStudyStat: (newStat) => {
-    const stats = get().studyStats
-    const existingIndex = stats.findIndex(
+    const currentStats = get().studyStats;
+    const existingIndex = currentStats.findIndex(
       (stat) => stat.subject === newStat.subject && stat.topic === newStat.topic,
-    )
+    );
 
     if (existingIndex < 0) {
-      set({ studyStats: [...stats, newStat] })
-      persistState(get().userRef, selectState(get()))
-      return
+      set({ studyStats: [...currentStats, newStat] });
+      persistState(get().userRef, selectState(get()));
+      return;
     }
 
-    const existing = stats[existingIndex]
-    const existingAttempts = Math.max(0, existing.attempts)
-    const nextAttempts = Math.max(0, newStat.attempts)
-    const totalAttempts = existingAttempts + nextAttempts
+    const existing = currentStats[existingIndex];
+    const existingAttempts = Math.max(0, existing.attempts);
+    const nextAttempts = Math.max(0, newStat.attempts);
+    const totalAttempts = existingAttempts + nextAttempts;
 
     const mergedAccuracy =
       totalAttempts === 0
         ? newStat.accuracy
         : Math.round(
-            ((existing.accuracy * existingAttempts) + (newStat.accuracy * nextAttempts)) /
+            (existing.accuracy * existingAttempts + newStat.accuracy * nextAttempts) /
               totalAttempts,
-          )
+          );
 
     const merged: StudyStat = {
       subject: existing.subject,
       topic: existing.topic,
       accuracy: mergedAccuracy,
       attempts: totalAttempts,
-    }
+    };
 
-    const next = stats.slice()
-    next[existingIndex] = merged
-    set({ studyStats: next })
-    persistState(get().userRef, selectState(get()))
+    const next = [...currentStats];
+    next[existingIndex] = merged;
+    set({ studyStats: next });
+    persistState(get().userRef, selectState(get()));
   },
 
-  setDiagnosticResult: (result) => {
-    set({ diagnosticResult: result })
-    persistState(get().userRef, selectState(get()))
+  setDiagnosticResult: (diagnosticResult) => {
+    set({ diagnosticResult });
+    persistState(get().userRef, selectState(get()));
   },
 
-  setStudyPlan: (plan) => {
-    set({ studyPlan: plan })
-    persistState(get().userRef, selectState(get()))
+  setStudyPlan: (studyPlan) => {
+    set({ studyPlan });
+    persistState(get().userRef, selectState(get()));
   },
 
   completeFirstTime: () => {
-    set({ isFirstTime: false })
-    persistState(get().userRef, selectState(get()))
+    set({ isFirstTime: false });
+    persistState(get().userRef, selectState(get()));
   },
 
   addPassPaperAttempt: (attempt) => {
-    const attempts = get().passPaperAttempts
-    set({ passPaperAttempts: [...attempts, attempt] })
-    persistState(get().userRef, selectState(get()))
+    set({ passPaperAttempts: [...get().passPaperAttempts, attempt] });
+    persistState(get().userRef, selectState(get()));
   },
 
-  updatePassPaperStats: (newStats) => {
-    const stats = [...get().passPaperStats]
-    const existingIndex = stats.findIndex((s) => s.subject === newStats.subject)
+  updatePassPaperStats: (stats) => {
+    const current = [...get().passPaperStats];
+    const existingIndex = current.findIndex((entry) => entry.subject === stats.subject);
     if (existingIndex >= 0) {
-      stats[existingIndex] = newStats
+      current[existingIndex] = stats;
     } else {
-      stats.push(newStats)
+      current.push(stats);
     }
-    set({ passPaperStats: stats })
-    persistState(get().userRef, selectState(get()))
+
+    set({ passPaperStats: current });
+    persistState(get().userRef, selectState(get()));
   },
 
   addStudySession: (session) => {
-    const sessions = get().studySessions
-    if (sessions.some((existing) => existing.id === session.id)) return
-    set({ studySessions: [...sessions, { ...session, missed: false }] })
-    persistState(get().userRef, selectState(get()))
+    if (get().studySessions.some((existing) => existing.id === session.id)) return;
+    set({ studySessions: [...get().studySessions, { ...session, missed: false }] });
+    persistState(get().userRef, selectState(get()));
   },
 
   updateStudySession: (id, updates) => {
-    const sessions = get().studySessions.map((s) =>
-      s.id === id ? { ...s, ...updates } : s,
-    )
-    set({ studySessions: sessions })
-    persistState(get().userRef, selectState(get()))
+    set({
+      studySessions: get().studySessions.map((session) =>
+        session.id === id ? { ...session, ...updates } : session,
+      ),
+    });
+    persistState(get().userRef, selectState(get()));
   },
 
   markMissedSessions: () => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const sessions = get().studySessions.map((session) => {
-      const sessionDate = new Date(session.date)
-      sessionDate.setHours(0, 0, 0, 0)
-      if (session.completed) return { ...session, missed: false }
-      return { ...session, missed: sessionDate < today }
-    })
-    set({ studySessions: sessions })
-    persistState(get().userRef, selectState(get()))
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    set({
+      studySessions: get().studySessions.map((session) => {
+        const sessionDate = new Date(`${session.date}T00:00:00`);
+        if (session.completed) return { ...session, missed: false };
+        return {
+          ...session,
+          missed: sessionDate < today,
+        };
+      }),
+    });
+    persistState(get().userRef, selectState(get()));
   },
 
-  setStudyPlanProfile: (plan) => {
-    set({ studyPlanProfile: plan })
-    persistState(get().userRef, selectState(get()))
+  setStudyPlanProfile: (studyPlanProfile) => {
+    set({ studyPlanProfile });
+    persistState(get().userRef, selectState(get()));
   },
 
-  setPlannerSessions: (sessions) => {
-    set({ plannerSessions: sessions })
-    persistState(get().userRef, selectState(get()))
+  setPlannerSessions: (plannerSessions) => {
+    set({ plannerSessions: plannerSessions.map(normalizePlannerSession) });
+    persistState(get().userRef, selectState(get()));
   },
 
   updatePlannerSession: (id, updates) => {
-    const sessions = get().plannerSessions.map((s) =>
-      s.id === id ? { ...s, ...updates } : s,
-    )
-    set({ plannerSessions: sessions })
-    persistState(get().userRef, selectState(get()))
+    set({
+      plannerSessions: get().plannerSessions.map((session) =>
+        session.id === id ? normalizePlannerSession({ ...session, ...updates }) : session,
+      ),
+    });
+    persistState(get().userRef, selectState(get()));
   },
 
   clearPlannerSessions: () => {
-    set({ plannerSessions: [] })
-    persistState(get().userRef, selectState(get()))
+    set({ plannerSessions: [] });
+    persistState(get().userRef, selectState(get()));
   },
 
   resetProgress: () => {
-    set({ ...initialState })
-    persistState(get().userRef, selectState(get()))
+    set({ ...initialState });
+    persistState(get().userRef, selectState(get()));
   },
 
-  // ── Engine actions ──
-
   applyEngineDecay: () => {
-    const current = get().engineState
-    if (!current || Object.keys(current.topics).length === 0) return
-    const decayed = applyDecay(current)
-    set({ engineState: decayed })
-    persistState(get().userRef, selectState(get()))
+    const engineState = applyDecay(get().engineState);
+    set({ engineState });
+    persistState(get().userRef, selectState(get()));
   },
 
   processEngineResults: (results) => {
-    const current = get().engineState ?? emptyUserState()
-    const updated = processSessionResults(current, results)
-    set({ engineState: updated })
-    persistState(get().userRef, selectState(get()))
+    const engineState = processSessionResults(get().engineState ?? emptyUserState(), results);
+    set({ engineState });
+    if (!get().activeSession) {
+      get().regenerateDailyPlan();
+    } else {
+      get().ensureDailyPlan();
+    }
+    persistState(get().userRef, selectState(get()));
   },
 
   setEngineState: (engineState) => {
-    set({ engineState })
-    persistState(get().userRef, selectState(get()))
+    set({ engineState: normalizeEngineState(engineState) });
+    if (!get().activeSession) {
+      get().regenerateDailyPlan();
+    } else {
+      get().ensureDailyPlan();
+    }
+    persistState(get().userRef, selectState(get()));
   },
 
   setActiveSession: (activeSession) => {
-    set({ activeSession })
-    persistState(get().userRef, selectState(get()))
+    set({ activeSession });
+    persistState(get().userRef, selectState(get()));
   },
-}))
+
+  ensureDailyPlan: (date = todayISO()) => {
+    const { studentProfile, plannerSessions, engineState, activeSession } = get();
+    if (!studentProfile || studentProfile.subjects.length === 0) return;
+
+    const todaysSessions = plannerSessions.filter((session) => session.scheduledAt === date);
+    if (todaysSessions.length > 0) return;
+
+    const nextSessions = buildPlannerSessions(studentProfile, engineState, plannerSessions, date);
+    const preserved = plannerSessions.filter((session) => session.scheduledAt !== date);
+
+    set({
+      plannerSessions: [
+        ...preserved,
+        ...nextSessions,
+      ],
+      activeSession,
+    });
+    persistState(get().userRef, selectState(get()));
+  },
+
+  regenerateDailyPlan: (date = todayISO()) => {
+    const { studentProfile, plannerSessions, engineState, activeSession } = get();
+    if (!studentProfile || studentProfile.subjects.length === 0) return;
+
+    const generated = buildPlannerSessions(studentProfile, engineState, plannerSessions, date);
+    const preserved = plannerSessions.filter((session) => {
+      if (session.scheduledAt !== date) return true;
+      if (session.completed) return true;
+      if (activeSession && session.id === activeSession.sessionId) return true;
+      return false;
+    });
+
+    set({
+      plannerSessions: [...preserved, ...generated],
+    });
+    persistState(get().userRef, selectState(get()));
+  },
+
+  startPlannerSession: (sessionId) => {
+    const { plannerSessions, activeSession } = get();
+    const plannerSession = plannerSessions.find((session) => session.id === sessionId);
+    if (!plannerSession) return;
+
+    if (activeSession && activeSession.sessionId === sessionId) {
+      set({ activeSession: resumeSession(activeSession) });
+      persistState(get().userRef, selectState(get()));
+      return;
+    }
+
+    const nextSession = startSession(
+      plannerSession.id,
+      plannerSession.subject,
+      plannerSession.topic,
+      plannerSession.questionIds,
+    );
+
+    set({
+      activeSession: nextSession,
+      plannerSessions: plannerSessions.map((session) =>
+        session.id === sessionId ? { ...session, completed: false } : session,
+      ),
+    });
+    persistState(get().userRef, selectState(get()));
+  },
+
+  resumeActiveSession: () => {
+    const activeSession = get().activeSession;
+    if (!activeSession) return;
+    set({ activeSession: resumeSession(activeSession) });
+    persistState(get().userRef, selectState(get()));
+  },
+
+  pauseActiveSession: () => {
+    const activeSession = get().activeSession;
+    if (!activeSession) return;
+    set({ activeSession: pauseSession(activeSession) });
+    persistState(get().userRef, selectState(get()));
+  },
+
+  recordActiveQuestionTime: (questionId, timeSpentMs) => {
+    const activeSession = get().activeSession;
+    if (!activeSession) return;
+    set({ activeSession: recordQuestionTime(activeSession, questionId, timeSpentMs) });
+    persistState(get().userRef, selectState(get()));
+  },
+
+  submitActiveAnswer: (questionId, selectedIndex, timeSpentMs = 0) => {
+    const activeSession = get().activeSession;
+    if (!activeSession) return;
+    set({
+      activeSession: submitAnswer(activeSession, questionId, selectedIndex, timeSpentMs),
+    });
+    persistState(get().userRef, selectState(get()));
+  },
+
+  goToActiveQuestion: (index) => {
+    const activeSession = get().activeSession;
+    if (!activeSession) return;
+    set({ activeSession: goToQuestion(activeSession, index) });
+    persistState(get().userRef, selectState(get()));
+  },
+
+  completeActiveSession: () => {
+    const activeSession = get().activeSession;
+    if (!activeSession) return null;
+
+    const questions = getQuestionsByIds(activeSession.questionIds);
+    if (questions.length === 0) return null;
+
+    const correctMap = Object.fromEntries(
+      questions.map((question) => [question.id, question.correctIndex]),
+    );
+    const topicMap = Object.fromEntries(questions.map((question) => [question.id, question.topic]));
+
+    const completed = completeEngineSession(activeSession, correctMap, topicMap);
+    const score = completed.results.filter((result) => result.correct).length;
+    const accuracy =
+      completed.results.length === 0
+        ? 0
+        : Math.round((score / completed.results.length) * 100);
+    const completedDate = new Date().toISOString();
+    const completedDay = completedDate.slice(0, 10);
+
+    const engineState = processSessionResults(get().engineState, {
+      sessionId: activeSession.sessionId,
+      results: completed.results,
+      completedAt: completedDate,
+      source: "planner",
+    });
+
+    const plannerSessions = get().plannerSessions.map((session) =>
+      session.id === activeSession.sessionId
+        ? {
+            ...session,
+            completed: true,
+            score,
+            accuracy,
+          }
+        : session,
+    );
+    const studentProfile = get().studentProfile;
+
+    const studyStats = [...get().studyStats];
+    for (const topicResult of completed.topicResults) {
+      const existingIndex = studyStats.findIndex(
+        (stat) => stat.subject === topicResult.subject && stat.topic === topicResult.topic,
+      );
+      const nextStat: StudyStat = {
+        subject: topicResult.subject as StudyStat["subject"],
+        topic: topicResult.topic,
+        accuracy: Math.round(topicResult.accuracy * 100),
+        attempts: topicResult.total,
+      };
+
+      if (existingIndex < 0) {
+        studyStats.push(nextStat);
+        continue;
+      }
+
+      const existing = studyStats[existingIndex];
+      const totalAttempts = existing.attempts + nextStat.attempts;
+      studyStats[existingIndex] = {
+        subject: existing.subject,
+        topic: existing.topic,
+        accuracy:
+          totalAttempts === 0
+            ? nextStat.accuracy
+            : Math.round(
+                (existing.accuracy * existing.attempts + nextStat.accuracy * nextStat.attempts) /
+                  totalAttempts,
+              ),
+        attempts: totalAttempts,
+      };
+    }
+
+    const studySessions = [
+      ...get().studySessions,
+      {
+        id: `planner-complete-${activeSession.sessionId}`,
+        subject: activeSession.subject,
+        durationMinutes: Math.max(1, Math.round(completed.totalTimeMs / 60_000)),
+        completed: true,
+        date: completedDay,
+        topic: activeSession.topic,
+        kind: "past_paper" as const,
+        notes: `Planner session completed: ${accuracy}%`,
+        missed: false,
+      },
+    ];
+
+    const refreshedPlannerSessions =
+      studentProfile && studentProfile.subjects.length > 0
+        ? [
+            ...plannerSessions.filter(
+              (session) => session.scheduledAt !== completedDay || session.completed,
+            ),
+            ...buildPlannerSessions(studentProfile, engineState, plannerSessions, completedDay),
+          ]
+        : plannerSessions;
+
+    set({
+      activeSession: null,
+      engineState,
+      plannerSessions: refreshedPlannerSessions,
+      studyStats,
+      studySessions,
+    });
+    persistState(get().userRef, selectState(get()));
+
+    return {
+      sessionId: activeSession.sessionId,
+      score,
+      accuracy,
+      topicResults: completed.topicResults,
+    };
+  },
+
+  clearActiveSession: () => {
+    set({ activeSession: null });
+    persistState(get().userRef, selectState(get()));
+  },
+}));

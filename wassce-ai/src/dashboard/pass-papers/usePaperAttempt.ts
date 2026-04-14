@@ -7,6 +7,7 @@ import type {
   PassPaperStats,
   WeakTopic,
 } from "../../core/types/passPaper";
+import type { TopicSessionResult } from "../../core/types/learning";
 import type { Subject, StudyStat } from "../../types/domain";
 import type { StudySession } from "../../types/profile";
 import { useLearningStore } from "../../stores/learningStore";
@@ -37,6 +38,7 @@ export interface UsePaperAttempt {
   score: number;
   accuracy: number;
   weakTopics: WeakTopic[];
+  topicResults: TopicSessionResult[];
 
   // Actions
   start: (paper: InteractivePaper, mode: PaperMode) => void;
@@ -82,7 +84,7 @@ export const usePaperAttempt = (): UsePaperAttempt => {
 
   // ------- Derived state -------
 
-  const questions = paper?.questions ?? [];
+  const questions = useMemo(() => paper?.questions ?? [], [paper]);
 
   const answeredCount = useMemo(
     () => questions.reduce((c, q) => (answers[q.id] != null ? c + 1 : c), 0),
@@ -127,6 +129,35 @@ export const usePaperAttempt = (): UsePaperAttempt => {
       .sort((a, b) => a.accuracy - b.accuracy);
   }, [phase, records, paper]);
 
+  const topicResults = useMemo<TopicSessionResult[]>(() => {
+    if (phase !== "finished" || records.length === 0 || !paper) return [];
+
+    const byTopic = new Map<string, TopicSessionResult>();
+    for (const record of records) {
+      const key = `${paper.subject}::${record.topic}`;
+      const entry = byTopic.get(key) ?? {
+        topic: record.topic,
+        subject: paper.subject,
+        correct: 0,
+        total: 0,
+        accuracy: 0,
+        timeSpentMs: 0,
+      };
+
+      entry.total += 1;
+      entry.timeSpentMs += record.timeSpent * 1000;
+      if (record.correct) entry.correct += 1;
+      byTopic.set(key, entry);
+    }
+
+    return [...byTopic.values()]
+      .map((entry) => ({
+        ...entry,
+        accuracy: entry.total === 0 ? 0 : entry.correct / entry.total,
+      }))
+      .sort((left, right) => left.accuracy - right.accuracy);
+  }, [paper, phase, records]);
+
   // ------- Countdown timer (exam mode) -------
 
   useEffect(() => {
@@ -159,12 +190,7 @@ export const usePaperAttempt = (): UsePaperAttempt => {
     const q = paper.questions[currentIndex];
     if (!q) return;
 
-    // Save elapsed time for previous question
-    const elapsed = Date.now() - questionEnteredAt.current;
     const prevAccum = questionTimeAccum.current;
-    // Attribute elapsed to whichever question was showing before this effect
-    // We don't know the "old" index here, so we accumulate on every render.
-    // Instead we handle it in the answer tracking below.
 
     questionEnteredAt.current = Date.now();
     // Initialise accumulator for this question if missing
@@ -270,6 +296,7 @@ export const usePaperAttempt = (): UsePaperAttempt => {
           timeMs: r.timeSpent * 1000, // convert seconds to ms
         })),
         completedAt: new Date().toISOString(),
+        source: "past_paper",
       });
     },
     [paper, answers, mode, addPassPaperAttempt, updatePassPaperStats, updateStudyStat, addStudySession, processEngineResults],
@@ -414,6 +441,7 @@ export const usePaperAttempt = (): UsePaperAttempt => {
     score,
     accuracy,
     weakTopics,
+    topicResults,
     start,
     setAnswer,
     jumpTo,

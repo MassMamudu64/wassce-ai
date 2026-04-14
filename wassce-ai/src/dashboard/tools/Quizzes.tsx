@@ -14,7 +14,7 @@ import { useQuizAttempt } from "./quizzes/useQuizAttempt";
 
 export default function Quizzes() {
   const { user } = useAuth();
-  const { updateStudyStat, addStudySession } = useLearningStore();
+  const { updateStudyStat, addStudySession, processEngineResults } = useLearningStore();
   const billing = useBillingStore();
 
   const hasApiKey = Boolean(getOpenAiApiKey());
@@ -32,6 +32,7 @@ export default function Quizzes() {
 
   const saveResult = () => {
     if (savedResult || quiz.questions.length === 0) return;
+    const sessionId = `quiz-${Date.now()}`;
 
     const correctCount = quiz.questions.reduce(
       (count, question) => (quiz.answers[question.id] === question.correctIndex ? count + 1 : count),
@@ -48,14 +49,26 @@ export default function Quizzes() {
       attempts: quiz.questions.length,
     });
     addStudySession({
-      id: `quiz-${Date.now()}`,
-      subject: subjectLabel,
+      id: sessionId,
+      subject: selectedSubject,
       durationMinutes: Math.max(10, Math.round((quiz.questions.length * 90) / 60)),
       completed: true,
       date: today,
       kind: "quiz",
       notes: `Quiz completed: ${accuracy}%`,
       topic: quiz.source === "ai" ? "AI quiz" : "Sample quiz",
+    });
+
+    processEngineResults({
+      sessionId,
+      completedAt: new Date().toISOString(),
+      source: "quiz",
+      results: quiz.questions.map((question) => ({
+        topic: question.topic,
+        subject: question.subject,
+        correct: quiz.answers[question.id] === question.correctIndex,
+        timeMs: 60_000,
+      })),
     });
     setSavedResult(true);
   };
