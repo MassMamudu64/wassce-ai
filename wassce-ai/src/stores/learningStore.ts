@@ -2,7 +2,13 @@ import { create } from 'zustand'
 import type { UserProgress, StudyStat, DiagnosticResult, StudyPlan } from '../types/domain'
 import type { PassPaperAttempt, PassPaperStats, PlannerSession } from '../core/types/passPaper'
 import type { StudentProfile, StudySession, StudyPlan as ProfileStudyPlan } from '../types/profile'
+import type { UserLearningState, ActiveSessionState, SessionResults } from '../core/types/learning'
+import { emptyUserState, applyDecay, processSessionResults } from '../core/learningEngine'
 import { upsertLearningState } from '../utils/supabaseData'
+
+// ---------------------------------------------------------------------------
+// State shape
+// ---------------------------------------------------------------------------
 
 export type LearningStateData = {
   studentProfile: StudentProfile | null
@@ -16,25 +22,18 @@ export type LearningStateData = {
   studySessions: StudySession[]
   studyPlanProfile: ProfileStudyPlan | null
   plannerSessions: PlannerSession[]
+  /** Adaptive learning engine state — mastery, decay, spaced repetition. */
+  engineState: UserLearningState
+  /** Currently active study session (null when idle). */
+  activeSession: ActiveSessionState | null
 }
 
-interface LearningState {
+interface LearningState extends LearningStateData {
   userRef: string | null
-  studentProfile: StudentProfile | null
-  userProgress: UserProgress | null
-  studyStats: StudyStat[]
-  diagnosticResult: DiagnosticResult | null
-  studyPlan: StudyPlan | null
-  isFirstTime: boolean
-  passPaperAttempts: PassPaperAttempt[]
-  passPaperStats: PassPaperStats[]
-  studySessions: StudySession[]
-  studyPlanProfile: ProfileStudyPlan | null
-  plannerSessions: PlannerSession[]
 
-  // Actions
+  // ── Existing actions ──
   setUserRef: (userRef: string | null) => void
-  hydrate: (data: LearningStateData | null) => void
+  hydrate: (data: Partial<LearningStateData> | null) => void
   setStudentProfile: (profile: StudentProfile | null) => void
   setUserProgress: (progress: UserProgress) => void
   updateStudyStat: (stat: StudyStat) => void
@@ -51,9 +50,24 @@ interface LearningState {
   updatePlannerSession: (id: string, updates: Partial<PlannerSession>) => void
   clearPlannerSessions: () => void
   resetProgress: () => void
+
+  // ── Engine actions ──
+  /** Apply time-based decay to all topics. Call on app load. */
+  applyEngineDecay: () => void
+  /** Process completed session results through the learning engine. */
+  processEngineResults: (results: SessionResults) => void
+  /** Directly set the engine state (used by hydrate). */
+  setEngineState: (state: UserLearningState) => void
+  /** Set / clear the active session. */
+  setActiveSession: (session: ActiveSessionState | null) => void
 }
 
-const serialize = (data: LearningStateData) => JSON.parse(JSON.stringify(data)) as LearningStateData
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+const serialize = (data: LearningStateData) =>
+  JSON.parse(JSON.stringify(data)) as LearningStateData
 
 const selectState = (state: LearningState): LearningStateData => ({
   studentProfile: state.studentProfile,
@@ -67,12 +81,18 @@ const selectState = (state: LearningState): LearningStateData => ({
   studySessions: state.studySessions,
   studyPlanProfile: state.studyPlanProfile,
   plannerSessions: state.plannerSessions,
+  engineState: state.engineState,
+  activeSession: state.activeSession,
 })
 
 const persistState = (userRef: string | null, data: LearningStateData) => {
   if (!userRef) return
   void upsertLearningState(userRef, serialize(data)).catch(() => {})
 }
+
+// ---------------------------------------------------------------------------
+// Initial state
+// ---------------------------------------------------------------------------
 
 const initialState: LearningStateData = {
   studentProfile: null,
@@ -86,7 +106,13 @@ const initialState: LearningStateData = {
   studySessions: [],
   studyPlanProfile: null,
   plannerSessions: [],
+  engineState: emptyUserState(),
+  activeSession: null,
 }
+
+// ---------------------------------------------------------------------------
+// Store
+// ---------------------------------------------------------------------------
 
 export const useLearningStore = create<LearningState>()((set, get) => ({
   userRef: null,
@@ -95,7 +121,11 @@ export const useLearningStore = create<LearningState>()((set, get) => ({
   setUserRef: (userRef) => set({ userRef }),
 
   hydrate: (data) => {
-    const next = data ?? initialState
+    const next = { ...initialState, ...(data ?? {}) }
+    // Ensure engineState is always a valid object
+    if (!next.engineState || !next.engineState.topics) {
+      next.engineState = emptyUserState()
+    }
     set({ ...next })
   },
 
@@ -111,7 +141,9 @@ export const useLearningStore = create<LearningState>()((set, get) => ({
 
   updateStudyStat: (newStat) => {
     const stats = get().studyStats
-    const existingIndex = stats.findIndex((stat) => stat.subject === newStat.subject && stat.topic === newStat.topic)
+    const existingIndex = stats.findIndex(
+      (stat) => stat.subject === newStat.subject && stat.topic === newStat.topic,
+    )
 
     if (existingIndex < 0) {
       set({ studyStats: [...stats, newStat] })
@@ -127,7 +159,10 @@ export const useLearningStore = create<LearningState>()((set, get) => ({
     const mergedAccuracy =
       totalAttempts === 0
         ? newStat.accuracy
-        : Math.round(((existing.accuracy * existingAttempts) + (newStat.accuracy * nextAttempts)) / totalAttempts)
+        : Math.round(
+            ((existing.accuracy * existingAttempts) + (newStat.accuracy * nextAttempts)) /
+              totalAttempts,
+          )
 
     const merged: StudyStat = {
       subject: existing.subject,
@@ -158,51 +193,48 @@ export const useLearningStore = create<LearningState>()((set, get) => ({
   },
 
   addPassPaperAttempt: (attempt) => {
-    const attempts = get().passPaperAttempts;
-    set({ passPaperAttempts: [...attempts, attempt] });
+    const attempts = get().passPaperAttempts
+    set({ passPaperAttempts: [...attempts, attempt] })
     persistState(get().userRef, selectState(get()))
   },
 
   updatePassPaperStats: (newStats) => {
-    const stats = get().passPaperStats;
-    const existingIndex = stats.findIndex(s => s.subject === newStats.subject);
+    const stats = [...get().passPaperStats]
+    const existingIndex = stats.findIndex((s) => s.subject === newStats.subject)
     if (existingIndex >= 0) {
-      stats[existingIndex] = newStats;
+      stats[existingIndex] = newStats
     } else {
-      stats.push(newStats);
+      stats.push(newStats)
     }
-    set({ passPaperStats: [...stats] });
+    set({ passPaperStats: stats })
     persistState(get().userRef, selectState(get()))
   },
 
   addStudySession: (session) => {
-    const sessions = get().studySessions;
-    if (sessions.some((existing) => existing.id === session.id)) return;
-    set({ studySessions: [...sessions, { ...session, missed: false }] });
+    const sessions = get().studySessions
+    if (sessions.some((existing) => existing.id === session.id)) return
+    set({ studySessions: [...sessions, { ...session, missed: false }] })
     persistState(get().userRef, selectState(get()))
   },
 
   updateStudySession: (id, updates) => {
-    const sessions = get().studySessions.map(s =>
-      s.id === id ? { ...s, ...updates } : s
-    );
-    set({ studySessions: sessions });
+    const sessions = get().studySessions.map((s) =>
+      s.id === id ? { ...s, ...updates } : s,
+    )
+    set({ studySessions: sessions })
     persistState(get().userRef, selectState(get()))
   },
 
   markMissedSessions: () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
     const sessions = get().studySessions.map((session) => {
-      const sessionDate = new Date(session.date);
-      sessionDate.setHours(0, 0, 0, 0);
-      if (session.completed) {
-        return { ...session, missed: false };
-      }
-      const isMissed = sessionDate < today;
-      return { ...session, missed: isMissed };
-    });
-    set({ studySessions: sessions });
+      const sessionDate = new Date(session.date)
+      sessionDate.setHours(0, 0, 0, 0)
+      if (session.completed) return { ...session, missed: false }
+      return { ...session, missed: sessionDate < today }
+    })
+    set({ studySessions: sessions })
     persistState(get().userRef, selectState(get()))
   },
 
@@ -232,5 +264,32 @@ export const useLearningStore = create<LearningState>()((set, get) => ({
   resetProgress: () => {
     set({ ...initialState })
     persistState(get().userRef, selectState(get()))
-  }
+  },
+
+  // ── Engine actions ──
+
+  applyEngineDecay: () => {
+    const current = get().engineState
+    if (!current || Object.keys(current.topics).length === 0) return
+    const decayed = applyDecay(current)
+    set({ engineState: decayed })
+    persistState(get().userRef, selectState(get()))
+  },
+
+  processEngineResults: (results) => {
+    const current = get().engineState ?? emptyUserState()
+    const updated = processSessionResults(current, results)
+    set({ engineState: updated })
+    persistState(get().userRef, selectState(get()))
+  },
+
+  setEngineState: (engineState) => {
+    set({ engineState })
+    persistState(get().userRef, selectState(get()))
+  },
+
+  setActiveSession: (activeSession) => {
+    set({ activeSession })
+    persistState(get().userRef, selectState(get()))
+  },
 }))

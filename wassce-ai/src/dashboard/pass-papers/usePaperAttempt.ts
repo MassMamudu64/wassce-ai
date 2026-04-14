@@ -78,6 +78,7 @@ export const usePaperAttempt = (): UsePaperAttempt => {
   const updatePassPaperStats = useLearningStore((s) => s.updatePassPaperStats);
   const updateStudyStat = useLearningStore((s) => s.updateStudyStat);
   const addStudySession = useLearningStore((s) => s.addStudySession);
+  const processEngineResults = useLearningStore((s) => s.processEngineResults);
 
   // ------- Derived state -------
 
@@ -258,8 +259,20 @@ export const usePaperAttempt = (): UsePaperAttempt => {
         kind: "past_paper",
       };
       addStudySession(session);
+
+      // 5. Feed results into the adaptive learning engine
+      processEngineResults({
+        sessionId: attempt.id,
+        results: finalRecords.map((r) => ({
+          topic: r.topic,
+          subject: paper.subject,
+          correct: r.correct,
+          timeMs: r.timeSpent * 1000, // convert seconds to ms
+        })),
+        completedAt: new Date().toISOString(),
+      });
     },
-    [paper, answers, mode, addPassPaperAttempt, updatePassPaperStats, updateStudyStat, addStudySession],
+    [paper, answers, mode, addPassPaperAttempt, updatePassPaperStats, updateStudyStat, addStudySession, processEngineResults],
   );
 
   // ------- finalise (internal) -------

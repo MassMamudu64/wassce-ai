@@ -1,17 +1,7 @@
 import { useMemo, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useLearningStore } from "../stores/learningStore";
-
-const availableSubjects = [
-  "Mathematics",
-  "English Language",
-  "Integrated Science",
-  "Biology",
-  "Chemistry",
-  "Physics",
-  "Economics",
-  "Government",
-];
+import { SUBJECT_OPTIONS } from "../utils/subjects";
 
 export default function StudentProfileSetup() {
   const { user } = useAuth();
@@ -71,15 +61,15 @@ export default function StudentProfileSetup() {
         <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Subjects</p>
           <div className="grid grid-cols-2 gap-2">
-            {availableSubjects.map((subject) => (
-              <label key={subject} className="flex items-center gap-2 text-sm text-slate-700">
+            {SUBJECT_OPTIONS.map(({ slug, label }) => (
+              <label key={slug} className="flex items-center gap-2 text-sm text-slate-700">
                 <input
                   type="checkbox"
-                  checked={subjects.includes(subject)}
-                  onChange={(event) => toggleSubject(subject, event.target.checked)}
+                  checked={subjects.includes(slug)}
+                  onChange={(event) => toggleSubject(slug, event.target.checked)}
                   className="h-4 w-4 accent-emerald-600"
                 />
-                <span>{subject}</span>
+                <span>{label}</span>
               </label>
             ))}
           </div>
