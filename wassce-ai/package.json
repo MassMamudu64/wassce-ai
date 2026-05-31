@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test:e2e": "playwright test",
+    "test:server": "tsx --test server/tests/*.test.ts",
     "preview": "vite preview",
     "dev:api": "tsx watch server/src/index.ts",
     "build:api": "tsc -p server/tsconfig.json",
