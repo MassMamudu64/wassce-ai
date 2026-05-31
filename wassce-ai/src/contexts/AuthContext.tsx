@@ -13,6 +13,8 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  /** True until the initial Supabase session check resolves. */
+  initializing: boolean;
   signIn: (email: string, password: string, remember?: boolean) => Promise<void>;
   register: (name: string, email: string, password: string, remember?: boolean) => Promise<void>;
   resetPassword: (email: string, nextPassword: string) => Promise<void>;
@@ -41,6 +43,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  // When Supabase isn't configured there is no async session to wait for.
+  const [initializing, setInitializing] = useState<boolean>(Boolean(supabase));
 
   useEffect(() => {
     if (!supabase) return;
@@ -49,6 +53,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
       setUser(toUser(data.session?.user ?? null));
+      setInitializing(false);
     });
 
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -119,6 +124,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const value = {
     user,
     isAuthenticated: Boolean(user),
+    initializing,
     signIn,
     register,
     resetPassword,

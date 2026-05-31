@@ -67,5 +67,3 @@ export const supabase = isSupabaseConfigured
       },
     })
   : null;
-
-  // Note: The above code I’m getting the error “Supabase is not configured” in my Vite + React project.

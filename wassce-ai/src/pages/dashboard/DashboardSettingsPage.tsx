@@ -45,12 +45,16 @@ export default function DashboardSettingsPage() {
   const [prefsSaved, setPrefsSaved] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
 
-  // Sync from profile changes
+  // Sync editable form fields when the persisted profile changes (e.g. after
+  // Supabase hydration). This is the documented "reset local state on external
+  // change" pattern; the setState calls are intentional, not cascading renders.
   useEffect(() => {
     if (studentProfile) {
+      /* eslint-disable react-hooks/set-state-in-effect */
       setDailyGoal(studentProfile.dailyStudyGoalMinutes);
       setSelectedSubjects(studentProfile.subjects);
       setExamDate(studentProfile.examDate);
+      /* eslint-enable react-hooks/set-state-in-effect */
     }
   }, [studentProfile]);
 
@@ -81,6 +85,7 @@ export default function DashboardSettingsPage() {
 
   useEffect(() => {
     if (!userRef) {
+      /* eslint-disable-next-line react-hooks/set-state-in-effect */
       setProfileName(user?.name ?? "");
       setProfileAvatar("");
       setOpenAiKey("");
@@ -343,7 +348,7 @@ export default function DashboardSettingsPage() {
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">OpenAI API key (optional)</h2>
         </div>
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-          Required for AI Chat and AI flashcard generation. Stored securely in Supabase.
+          Required for AI Chat and AI flashcard generation. Stored in your private Supabase profile and only sent to OpenAI from your browser.
         </p>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]">

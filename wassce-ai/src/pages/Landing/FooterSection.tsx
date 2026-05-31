@@ -90,18 +90,15 @@ const FooterSection = () => {
         <div className="mt-12 flex flex-col gap-4 border-t border-slate-800 pt-6 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
           <p>Copyright (c) {currentYear} WASSCE AI. All rights reserved.</p>
           <div className="flex flex-wrap gap-4">
-            <a href="#" className="hover:text-white transition">
-              Twitter
+            <a href="mailto:support@wassceai.com" className="hover:text-white transition">
+              Contact us
             </a>
-            <a href="#" className="hover:text-white transition">
-              Facebook
-            </a>
-            <a href="#" className="hover:text-white transition">
-              Instagram
-            </a>
-            <a href="#" className="hover:text-white transition">
-              LinkedIn
-            </a>
+            <Link to="/faq" className="hover:text-white transition">
+              FAQ
+            </Link>
+            <Link to="/help" className="hover:text-white transition">
+              Help Center
+            </Link>
           </div>
           <div>
             Built with care by{" "}

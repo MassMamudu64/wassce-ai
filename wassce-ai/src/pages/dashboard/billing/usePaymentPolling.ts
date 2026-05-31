@@ -1,18 +1,30 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 type Status = "PENDING" | "SUCCESS" | "FAILED";
 
 export const usePaymentPolling = (paymentId: string | null, onStatus: (status: Status) => void) => {
+  // Keep the latest callback in a ref so a new inline arrow on each render
+  // doesn't tear down and recreate the polling interval every render.
+  const onStatusRef = useRef(onStatus);
+  useEffect(() => {
+    onStatusRef.current = onStatus;
+  }, [onStatus]);
+
   useEffect(() => {
     if (!paymentId) return;
     let timer: number | null = null;
 
     const poll = async () => {
-      const res = await fetch(`/api/payments/${paymentId}`);
-      const data = (await res.json()) as { status?: Status };
-      if (!data.status) return;
-      onStatus(data.status);
-      if (data.status !== "PENDING" && timer) window.clearInterval(timer);
+      try {
+        const res = await fetch(`/api/payments/${paymentId}`);
+        if (!res.ok) return;
+        const data = (await res.json()) as { status?: Status };
+        if (!data.status) return;
+        onStatusRef.current(data.status);
+        if (data.status !== "PENDING" && timer) window.clearInterval(timer);
+      } catch {
+        // Transient network error — keep polling on the next tick.
+      }
     };
 
     timer = window.setInterval(poll, 2000);
@@ -20,6 +32,6 @@ export const usePaymentPolling = (paymentId: string | null, onStatus: (status: S
     return () => {
       if (timer) window.clearInterval(timer);
     };
-  }, [onStatus, paymentId]);
+  }, [paymentId]);
 };
 

@@ -10,13 +10,11 @@ const start = async () => {
   await ensureSchema();
   const app = createApp();
   app.listen(config.port, () => {
-    // eslint-disable-next-line no-console
     console.log(`[api] listening on :${config.port}`);
   });
 };
 
 start().catch((e) => {
-  // eslint-disable-next-line no-console
   console.error(e);
   process.exit(1);
 });

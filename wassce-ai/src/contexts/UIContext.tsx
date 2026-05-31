@@ -1,8 +1,10 @@
 /* eslint-disable react-refresh/only-export-components */
 import type { ReactNode } from "react";
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 type ThemeMode = "light" | "dark";
+
+const THEME_STORAGE_KEY = "wassce-ai-theme";
 
 interface UIContextValue {
   sidebarOpen: boolean;
@@ -19,6 +21,8 @@ const UIContext = createContext<UIContextValue | undefined>(undefined);
 
 const getInitialTheme = (): ThemeMode => {
   if (typeof window === "undefined") return "light";
+  const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+  if (stored === "light" || stored === "dark") return stored;
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 };
 
@@ -26,6 +30,14 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [theme, setTheme] = useState<ThemeMode>(getInitialTheme);
+
+  // Keep the `dark` class on <html> and localStorage in sync with the toggle so
+  // Tailwind `dark:` utilities (darkMode: "class") follow the in-app theme.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
 
   const value = useMemo(
     () => ({

@@ -93,7 +93,8 @@ export default function HeroSection({ onOpenLogin }: HeroSectionProps) {
             WASSCE AI workspace <span className="hero-orbit-dot" />
           </div>
           <h1 className="landing-display landing-fade-up landing-delay-2 text-4xl font-semibold leading-tight text-slate-900 sm:text-5xl lg:text-6xl">
-            Your daily WASSCE plan, built by AI and kept simple.
+            {/* Your daily WASSCE plan, built by AI and kept simple. */}
+            Your personal WASSCE study plan, crafted by AI. <span className="hero-orbit-dot" />
           </h1>
           <p className="landing-fade-up landing-delay-3 max-w-2xl text-lg text-slate-600">
             Know what to study today, practice past papers, and track progress after every session. Everything you need,
