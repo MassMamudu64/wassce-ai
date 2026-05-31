@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useBillingStore } from "../../stores/billingStore";
+import { authedFetch } from "../../utils/apiClient";
+import { fetchEntitlements, type PlanId } from "../../utils/entitlements";
 import BillingForm from "./billing/BillingForm";
 import PaymentStatusCard from "./billing/PaymentStatusCard";
 import { usePaymentPolling } from "./billing/usePaymentPolling";
@@ -11,35 +13,41 @@ type Status = "PENDING" | "SUCCESS" | "FAILED";
 export default function DashboardBillingPage() {
   const { user } = useAuth();
   const billing = useBillingStore();
-  const userRef = user?.email ?? user?.id;
   const premium = billing.isPremium;
 
   const [provider, setProvider] = useState<Provider>("mtn");
   const [phone, setPhone] = useState("");
-  const [amount, setAmount] = useState(20);
+  const [plan, setPlan] = useState<PlanId>("premium_monthly");
   const [status, setStatus] = useState<Status | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // Premium comes from the server entitlement check, never from local state.
+  const refreshEntitlement = () => {
+    void fetchEntitlements().then((ent) => billing.setPremium(ent.isPremium));
+  };
+  useEffect(refreshEntitlement, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   usePaymentPolling(billing.lastPaymentId, (next) => {
     setStatus(next);
-    if (next === "SUCCESS") billing.setPremium(true);
+    if (next === "SUCCESS") refreshEntitlement();
   });
 
   const payNow = async () => {
     setError(null);
     setStatus(null);
-    if (!userRef) return setError("Sign in to complete payment.");
+    if (!user?.id) return setError("Sign in to complete payment.");
     if (phone.trim().length < 8) return setError("Enter a valid phone number.");
-    if (amount <= 0) return setError("Enter a valid amount.");
     setBusy(true);
     try {
-      const res = await fetch("/api/payments", {
+      // Only provider/phone/plan are sent — the price and the user identity are
+      // resolved server-side from the verified session, so neither can be tampered with.
+      const res = await authedFetch("/api/payments", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider, phone: phone.trim(), amount, currency: "LRD", userRef }),
+        body: JSON.stringify({ provider, phone: phone.trim(), plan }),
       });
       const data = (await res.json()) as { id?: string; error?: string; status?: Status };
+      if (res.status === 401) throw new Error("Your session expired. Please sign in again.");
       if (!res.ok || !data.id) throw new Error(data.error ?? "Payment initiation failed");
       billing.setLastPaymentId(data.id);
       setStatus(data.status ?? "PENDING");
@@ -61,11 +69,11 @@ export default function DashboardBillingPage() {
       <BillingForm
         provider={provider}
         phone={phone}
-        amount={amount}
+        plan={plan}
         busy={busy}
         onProvider={setProvider}
         onPhone={setPhone}
-        onAmount={setAmount}
+        onPlan={setPlan}
         onPay={payNow}
       />
 

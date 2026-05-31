@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { authedFetch } from "../../../utils/apiClient";
 
 type Status = "PENDING" | "SUCCESS" | "FAILED";
 
@@ -16,7 +17,7 @@ export const usePaymentPolling = (paymentId: string | null, onStatus: (status: S
 
     const poll = async () => {
       try {
-        const res = await fetch(`/api/payments/${paymentId}`);
+        const res = await authedFetch(`/api/payments/${paymentId}`);
         if (!res.ok) return;
         const data = (await res.json()) as { status?: Status };
         if (!data.status) return;

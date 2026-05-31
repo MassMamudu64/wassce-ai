@@ -1,7 +1,7 @@
 import { Router } from "express";
 import type { Response } from "express";
 import { config } from "../config";
-import { findByExternalRef, setStatus } from "../payments/repo";
+import { findByExternalRef, transitionStatus } from "../payments/repo";
 import type { Provider } from "../payments/types";
 import { getProvider } from "../providers";
 import { verifyHmac } from "../http/verifyWebhook";
@@ -25,9 +25,14 @@ const handleWebhook = async (providerId: Provider, req: RawBodyRequest, res: Res
   const payment = await findByExternalRef(externalRef);
   if (!payment) return res.status(404).json({ error: "Payment not found" });
 
+  // Replay protection: settled payments are terminal, so a re-delivered or
+  // forged webhook for an already-resolved payment is a no-op. We also re-query
+  // the provider rather than trusting any status in the webhook body.
+  if (payment.status !== "PENDING") return res.json({ ok: true });
+
   const provider = getProvider(providerId);
   const { status } = await provider.getStatus(externalRef);
-  await setStatus(payment.id, status);
+  await transitionStatus(payment.id, status);
   res.json({ ok: true });
 };
 

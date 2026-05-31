@@ -4,11 +4,31 @@ const must = (key: string) => {
   return value;
 };
 
+export type PlanId = "premium_monthly" | "premium_termly";
+
+export type PlanDefinition = { id: PlanId; amount: number; currency: string; label: string; durationDays: number };
+
+// Server-authoritative pricing. The client may only choose a plan id; the
+// amount/currency are NEVER taken from the client, preventing amount tampering.
+export const PLANS: Record<PlanId, PlanDefinition> = {
+  premium_monthly: { id: "premium_monthly", amount: 2000, currency: "LRD", label: "Premium — Monthly", durationDays: 30 },
+  premium_termly: { id: "premium_termly", amount: 5000, currency: "LRD", label: "Premium — Term (3 months)", durationDays: 90 },
+};
+
 export const config = {
   port: Number(process.env.PORT ?? 3001),
   databaseUrl: must("DATABASE_URL"),
   corsOrigin: process.env.CORS_ORIGIN ?? "http://127.0.0.1:4173",
   publicBaseUrl: process.env.PUBLIC_BASE_URL ?? "http://localhost:3001",
+  supabase: {
+    url: (process.env.SUPABASE_URL ?? "").trim().replace(/\/$/, ""),
+    anonKey: (process.env.SUPABASE_ANON_KEY ?? "").trim(),
+    jwtSecret: (process.env.SUPABASE_JWT_SECRET ?? "").trim(),
+  },
+  auth: {
+    // Secure by default; only a local dev environment should set this to false.
+    required: process.env.AUTH_REQUIRED !== "false",
+  },
   webhook: {
     requireSignature: process.env.WEBHOOK_REQUIRE_SIGNATURE === "true",
     momoSecret: process.env.WEBHOOK_SECRET_MOMO ?? "",

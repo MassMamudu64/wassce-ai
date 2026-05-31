@@ -10,6 +10,7 @@ export type PaymentRecord = {
   externalRef: string | null;
   status: PaymentStatus;
   userRef: string | null;
+  plan: string | null;
   createdAt: string;
   updatedAt: string;
 };

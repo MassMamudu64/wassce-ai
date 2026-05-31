@@ -1,24 +1,26 @@
+import { PLAN_OPTIONS, type PlanId } from "../../../utils/entitlements";
+
 type Provider = "mtn" | "lonestar";
 
 interface BillingFormProps {
   provider: Provider;
   phone: string;
-  amount: number;
+  plan: PlanId;
   busy: boolean;
   onProvider: (provider: Provider) => void;
   onPhone: (phone: string) => void;
-  onAmount: (amount: number) => void;
+  onPlan: (plan: PlanId) => void;
   onPay: () => void;
 }
 
 export default function BillingForm({
   provider,
   phone,
-  amount,
+  plan,
   busy,
   onProvider,
   onPhone,
-  onAmount,
+  onPlan,
   onPay,
 }: BillingFormProps) {
   return (
@@ -41,17 +43,24 @@ export default function BillingForm({
             value={phone}
             onChange={(e) => onPhone(e.target.value)}
             placeholder="231XXXXXXXX"
+            inputMode="numeric"
+            autoComplete="tel"
             className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
           />
         </label>
         <label className="space-y-2">
-          <span className="text-xs uppercase tracking-[0.4em] text-slate-500">Amount (LRD)</span>
-          <input
-            type="number"
-            value={amount}
-            onChange={(e) => onAmount(Number(e.target.value))}
+          <span className="text-xs uppercase tracking-[0.4em] text-slate-500">Plan</span>
+          <select
+            value={plan}
+            onChange={(e) => onPlan(e.target.value as PlanId)}
             className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
-          />
+          >
+            {PLAN_OPTIONS.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label} — {option.price}
+              </option>
+            ))}
+          </select>
         </label>
       </div>
 

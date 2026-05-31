@@ -16,24 +16,21 @@ export type BillingStateData = {
   lastPaymentId: string | null;
 };
 
-const persistState = (userRef: string | null, data: BillingStateData) => {
-  if (!userRef) return;
-  void upsertBillingState(userRef, data).catch(() => {});
-};
-
 const initialState: BillingStateData = { isPremium: false, lastPaymentId: null };
 
 export const useBillingStore = create<BillingState>()((set, get) => ({
   userRef: null,
   ...initialState,
   setUserRef: (userRef) => set({ userRef }),
-  hydrate: (data) => set({ ...(data ?? initialState) }),
-  setPremium: (premium) => {
-    set({ isPremium: premium });
-    persistState(get().userRef, { isPremium: premium, lastPaymentId: get().lastPaymentId });
-  },
+  // Premium is NOT trusted from persisted client state — it is overwritten by
+  // the server entitlement check. Only the convenience `lastPaymentId` is kept.
+  hydrate: (data) => set({ isPremium: false, lastPaymentId: data?.lastPaymentId ?? null }),
+  // Local-only cache of the server's entitlement decision; never written back to
+  // the database as an authority (that was the privilege-escalation vector).
+  setPremium: (premium) => set({ isPremium: premium }),
   setLastPaymentId: (id) => {
     set({ lastPaymentId: id });
-    persistState(get().userRef, { isPremium: get().isPremium, lastPaymentId: id });
+    const userRef = get().userRef;
+    if (userRef) void upsertBillingState(userRef, { isPremium: get().isPremium, lastPaymentId: id }).catch(() => {});
   },
 }));
