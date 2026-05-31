@@ -12,9 +12,12 @@ import {
   useDueTopicsCount,
   useDueTopicMastery,
   useRecommendedSession,
+  useReadinessScore,
+  useWeeklyStats,
 } from "../../stores/learningSelectors";
 import { useLearning } from "../../contexts/LearningContext";
 import { subjectLabel } from "../../utils/subjects";
+import RadialGauge from "../../components/UI/RadialGauge";
 import {
   AlertTriangle,
   BookOpen,
@@ -25,9 +28,9 @@ import {
   Lightbulb,
   Play,
   RefreshCcw,
+  Sparkles,
   Target,
   TrendingUp,
-  Zap,
 } from "lucide-react";
 
 export default function DashboardOverviewPage() {
@@ -42,6 +45,8 @@ export default function DashboardOverviewPage() {
   const dueTopicsCount = useDueTopicsCount();
   const dueTopics = useDueTopicMastery(3);
   const recommendedSession = useRecommendedSession();
+  const readiness = useReadinessScore();
+  const weekly = useWeeklyStats();
   const [todayMs] = useState(() => Date.now());
   const recommendedReasonLabel =
     recommendedSession?.reason === "due"
@@ -53,14 +58,6 @@ export default function DashboardOverviewPage() {
           : recommendedSession?.reason === "revision"
             ? "revision"
             : null;
-
-  // Find weakest subject for AI card
-  const weakestSubject = useMemo(() => {
-    if (subjectSummaries.length === 0) return null;
-    const tested = subjectSummaries.filter((s) => s.accuracy > 0);
-    if (tested.length === 0) return null;
-    return tested.reduce((a, b) => (a.accuracy < b.accuracy ? a : b));
-  }, [subjectSummaries]);
 
   // Today's planner sessions
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -121,58 +118,96 @@ export default function DashboardOverviewPage() {
     ? Math.max(0, Math.ceil((examDate.getTime() - todayMs) / (1000 * 60 * 60 * 24)))
     : null;
 
+  // ── Hero copy ──
+  const hour = new Date(todayMs).getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const firstName = studentProfile.name.split(/\s+/)[0] || studentProfile.name;
+  const heroSubline =
+    streak >= 3
+      ? `You're on a ${streak}-day streak — keep the momentum going.`
+      : recommendedSession
+        ? `Your AI tutor lined up ${recommendedSession.topic} for today. Let's get a session in.`
+        : readiness.score !== null
+          ? readiness.score >= 75
+            ? "You're tracking well for WASSCE. Lock in your weak spots and stay sharp."
+            : "Every session lifts your readiness. Pick up where you left off."
+          : "Let's build your WAEC readiness — one focused session at a time.";
+  const ctaLabel = recommendedSession
+    ? "Continue learning"
+    : pendingPlannerSessions.length > 0
+      ? "Start today's plan"
+      : "Generate study plan";
+
   return (
     <div className="grid grid-cols-12 gap-6">
-      {/* ═══════════════ AI SESSION CARD ═══════════════ */}
-      <section className="col-span-12 rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)] dark:border-emerald-900 dark:from-emerald-950/40 dark:to-slate-900">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-emerald-700 dark:text-emerald-400">AI study advisor</p>
+      {/* ═══════════════ HERO ═══════════════ */}
+      <section className="relative col-span-12 overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 p-6 text-white shadow-[0_24px_60px_rgba(16,185,129,0.35)] sm:p-8">
+        <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-white/10 blur-2xl" />
+        <div className="pointer-events-none absolute -bottom-24 -left-10 h-56 w-56 rounded-full bg-amber-300/20 blur-3xl" />
+        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.35em] text-emerald-50">
+              <Sparkles className="h-4 w-4" /> {greeting}
             </div>
-            {recommendedSession ? (
-              <>
-                <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
-                  Next up: {recommendedSession.topic}
-                </h2>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                  {recommendedSession.questionCount} questions | {recommendedSession.durationMinutes} min | {recommendedReasonLabel}
-                  {todayStats.minutes > 0 && ` | ${todayStats.minutes} min studied today`}
-                </p>
-              </>
-            ) : weakestSubject ? (
-              <>
-                <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
-                  You are {weakestSubject.accuracy}% strong in {weakestSubject.label}
-                </h2>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                  Today: {pendingPlannerSessions.length > 0
-                    ? `${pendingPlannerSessions.length} session${pendingPlannerSessions.length > 1 ? "s" : ""} planned (${pendingPlannerSessions.reduce((s, p) => s + p.questionIds.length, 0)} questions)`
-                    : "Generate a study plan to start"}
-                  {todayStats.minutes > 0 && ` | ${todayStats.minutes} min studied`}
-                </p>
-              </>
-            ) : (
-              <>
-                <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
-                  Welcome back, {studentProfile.name}
-                </h2>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                  Complete a quiz or past paper to unlock personalized AI recommendations.
-                </p>
-              </>
+            <div>
+              <h1 className="text-3xl font-bold leading-tight sm:text-4xl">{firstName} 👋</h1>
+              <p className="mt-2 max-w-xl text-sm text-emerald-50/90 sm:text-base">{heroSubline}</p>
+            </div>
+            <div className="flex flex-wrap gap-3 pt-1">
+              <Link
+                to="/dashboard/planner"
+                className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-bold text-emerald-700 shadow-lg transition hover:-translate-y-0.5 hover:bg-emerald-50"
+              >
+                <Play className="h-4 w-4" />
+                {ctaLabel}
+              </Link>
+              <Link
+                to="/dashboard/tools/aichat"
+                className="inline-flex items-center gap-2 rounded-2xl border border-white/40 bg-white/10 px-5 py-3 text-sm font-bold text-white backdrop-blur transition hover:bg-white/20"
+              >
+                <Sparkles className="h-4 w-4" /> Ask AI Tutor
+              </Link>
+            </div>
+            {recommendedSession && (
+              <p className="text-xs text-emerald-50/80">
+                Next up: <span className="font-semibold text-white">{recommendedSession.topic}</span> · {recommendedSession.questionCount} questions · {recommendedSession.durationMinutes} min · {recommendedReasonLabel}
+              </p>
             )}
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Link to="/dashboard/planner" className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700">
-              <Play className="h-4 w-4" />
-              {recommendedSession ? "Continue plan" : pendingPlannerSessions.length > 0 ? "Start session" : "Generate plan"}
-            </Link>
-            <Link to="/dashboard/past-papers" className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 px-4 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950/60">
-              <FileText className="h-4 w-4" />
-              Past papers
-            </Link>
+
+          {/* Stat rings */}
+          <div className="flex shrink-0 items-center justify-around gap-4 rounded-3xl bg-white/10 p-4 backdrop-blur sm:gap-6 sm:p-5">
+            <div className="flex flex-col items-center gap-1.5">
+              <RadialGauge
+                value={readiness.score ?? 0}
+                colorClass="text-white"
+                trackClass="text-white/20"
+                label={readiness.score !== null ? `${readiness.score}%` : "--"}
+                sublabel="Ready"
+                labelClass="text-white"
+                sublabelClass="text-emerald-50/80"
+              />
+              <span className="text-[11px] font-semibold text-emerald-50">{readiness.label}</span>
+            </div>
+            <div className="flex flex-col items-center gap-1.5">
+              <RadialGauge
+                value={weekly.goalProgress}
+                colorClass="text-amber-300"
+                trackClass="text-white/20"
+                label={`${weekly.goalProgress}%`}
+                sublabel="Weekly"
+                labelClass="text-white"
+                sublabelClass="text-emerald-50/80"
+              />
+              <span className="text-[11px] font-semibold text-emerald-50">{weekly.minutes}/{weekly.goalMinutes} min</span>
+            </div>
+            <div className="hidden flex-col items-center gap-1.5 sm:flex">
+              <div className="flex h-24 w-24 flex-col items-center justify-center rounded-full border-[6px] border-white/20">
+                <Flame className={`h-6 w-6 ${streak > 0 ? "fill-amber-300 text-amber-300" : "text-white/70"}`} />
+                <span className="mt-0.5 text-lg font-bold text-white">{streak}</span>
+              </div>
+              <span className="text-[11px] font-semibold text-emerald-50">Day streak</span>
+            </div>
           </div>
         </div>
       </section>

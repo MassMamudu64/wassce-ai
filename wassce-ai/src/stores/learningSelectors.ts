@@ -375,6 +375,83 @@ export function useWeeklyActivity(): DayActivity[] {
 }
 
 // ---------------------------------------------------------------------------
+// Exam readiness (composite WAEC readiness score)
+// ---------------------------------------------------------------------------
+
+export interface ReadinessScore {
+  /** 0–100 composite readiness, or null before any topic is attempted. */
+  score: number | null;
+  /** Human band used for copy and colour. */
+  band: "ready" | "on-track" | "building" | "starting" | "none";
+  label: string;
+  /** Share of the syllabus the student has actually practised (0–1). */
+  coverage: number;
+  testedCount: number;
+  totalCount: number;
+}
+
+function readinessBand(score: number): { band: ReadinessScore["band"]; label: string } {
+  if (score >= 75) return { band: "ready", label: "Exam ready" };
+  if (score >= 50) return { band: "on-track", label: "On track" };
+  if (score >= 25) return { band: "building", label: "Building up" };
+  return { band: "starting", label: "Getting started" };
+}
+
+/**
+ * Blends effective mastery with syllabus coverage into a single motivating
+ * readiness number. Mastery answers "how good are you on what you've tried",
+ * coverage answers "how much of the exam have you faced" — WAEC needs both.
+ */
+export function useReadinessScore(): ReadinessScore {
+  const topics = useTopicMastery();
+
+  return useMemo(() => {
+    const totalCount = topics.length;
+    const tested = topics.filter((topic) => topic.attempts > 0);
+
+    if (totalCount === 0 || tested.length === 0) {
+      return { score: null, band: "none", label: "Not started", coverage: 0, testedCount: 0, totalCount };
+    }
+
+    const avgMastery = tested.reduce((sum, topic) => sum + topic.mastery, 0) / tested.length;
+    const coverage = tested.length / totalCount;
+    const score = Math.round((avgMastery * 0.65 + coverage * 0.35) * 100);
+    const { band, label } = readinessBand(score);
+
+    return { score, band, label, coverage, testedCount: tested.length, totalCount };
+  }, [topics]);
+}
+
+// ---------------------------------------------------------------------------
+// Weekly study totals (for goal rings / streak hero)
+// ---------------------------------------------------------------------------
+
+export interface WeeklyStats {
+  minutes: number;
+  goalMinutes: number;
+  goalProgress: number;
+  activeDays: number;
+}
+
+export function useWeeklyStats(): WeeklyStats {
+  const activity = useWeeklyActivity();
+  const { studentProfile } = useLearningStore();
+
+  return useMemo(() => {
+    const minutes = activity.reduce((sum, day) => sum + day.minutes, 0);
+    const activeDays = activity.filter((day) => day.minutes > 0).length;
+    const goalMinutes = (studentProfile?.dailyStudyGoalMinutes ?? 60) * 7;
+
+    return {
+      minutes,
+      goalMinutes,
+      goalProgress: goalMinutes > 0 ? Math.min(100, Math.round((minutes / goalMinutes) * 100)) : 0,
+      activeDays,
+    };
+  }, [activity, studentProfile]);
+}
+
+// ---------------------------------------------------------------------------
 // Insights
 // ---------------------------------------------------------------------------
 
